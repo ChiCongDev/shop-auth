@@ -10,9 +10,13 @@ class LichSuDonHang extends Model
 
     protected $fillable = [
         'don_hang_id',
-        'trang_thai',
-        'ghi_chu',
+        'hanh_dong',
+        'trang_thai_cu',
+        'trang_thai_moi',
+        'mo_ta',
+        'nguoi_thuc_hien',
         'nhan_vien_id',
+        'du_lieu_them',
     ];
 
     public function donHang()

@@ -122,14 +122,11 @@
                 @if($khachHang->diaChis->isNotEmpty())
                 <div class="space-y-3 mb-5">
                     @foreach($khachHang->diaChis as $dc)
-                    <div class="flex items-start justify-between p-4 border-2 {{ $dc->la_mac_dinh ? 'border-yellow-400 bg-yellow-50' : 'border-gray-100' }} rounded-xl gap-4">
+                    <div class="flex items-start justify-between p-4 border-2 border-gray-100 rounded-xl gap-4">
                         <div class="text-sm flex-1">
-                            @if($dc->la_mac_dinh)
-                                <span class="inline-block px-2 py-0.5 text-xs font-bold rounded-full mb-2" style="background:rgba(212,175,55,0.15); color:#d4af37">Mặc định</span>
-                            @endif
-                            <div class="font-medium text-gray-900">{{ $dc->dia_chi }}</div>
+                            <div class="font-medium text-gray-900">{{ $dc->dia_chi_cu_the }}</div>
                             <div class="text-gray-500 text-xs mt-0.5">
-                                {{ implode(', ', array_filter([$dc->phuong_xa, $dc->quan_huyen, $dc->tinh_thanh])) }}
+                                {{ implode(', ', array_filter([$dc->phuong_xa, $dc->khu_vuc])) }}
                             </div>
                         </div>
                         <form method="POST" action="/taiKhoan/dia-chi/{{ $dc->id }}/xoa" onsubmit="return confirm('Xóa địa chỉ này?')">
@@ -154,14 +151,9 @@
                         <div class="grid grid-cols-2 gap-3">
                             <input type="text" name="phuong_xa" placeholder="Phường/Xã"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                            <input type="text" name="quan_huyen" placeholder="Quận/Huyện"
+                            <input type="text" name="tinh_thanh" placeholder="Tỉnh/Thành phố *" required
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>
-                        <input type="text" name="tinh_thanh" placeholder="Tỉnh/Thành phố *" required
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                            <input type="checkbox" name="la_mac_dinh" class="rounded">
-                            Đặt làm địa chỉ mặc định
                         </label>
                         <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
                             style="background: linear-gradient(135deg, #1a1a2e, #d4af37)">

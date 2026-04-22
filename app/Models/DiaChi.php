@@ -8,13 +8,15 @@ class DiaChi extends Model
 {
     protected $table = 'dia_chis';
 
+    /**
+     * Tên cột khớp với bảng thật (do sell tạo):
+     * khu_vuc, phuong_xa, dia_chi_cu_the, khach_hang_id
+     */
     protected $fillable = [
         'khach_hang_id',
-        'dia_chi',
+        'dia_chi_cu_the',
         'phuong_xa',
-        'quan_huyen',
-        'tinh_thanh',
-        'la_mac_dinh',
+        'khu_vuc',
     ];
 
     public function khachHang()
@@ -23,15 +25,15 @@ class DiaChi extends Model
     }
 
     /**
-     * Địa chỉ đầy đủ
+     * Địa chỉ đầy đủ — giống sell
      */
     public function getDiaChiDayDuAttribute(): string
     {
         return implode(', ', array_filter([
-            $this->dia_chi,
+            $this->dia_chi_cu_the,
             $this->phuong_xa,
-            $this->quan_huyen,
-            $this->tinh_thanh,
+            $this->khu_vuc,
         ]));
     }
 }
+

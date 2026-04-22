@@ -56,14 +56,13 @@
                         <p class="text-sm font-medium text-gray-700 mb-2">Địa chỉ đã lưu:</p>
                         <div class="space-y-2">
                             @foreach($khachHang->diaChis as $dc)
-                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all hover:border-yellow-300
-                                {{ $dc->la_mac_dinh ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200' }}">
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all hover:border-yellow-300 border-gray-200">
                                 <input type="radio" name="_dia_chi_id" value="{{ $dc->id }}"
-                                    {{ $dc->la_mac_dinh ? 'checked' : '' }}
-                                    class="mt-0.5" onchange="dienDiaChi('{{ $dc->dia_chi }}', '{{ $dc->phuong_xa }}', '{{ $dc->quan_huyen }}', '{{ $dc->tinh_thanh }}')">
+                                    {{ $loop->first ? 'checked' : '' }}
+                                    class="mt-0.5" onchange="dienDiaChi('{{ $dc->dia_chi_cu_the }}', '{{ $dc->phuong_xa }}', '', '{{ $dc->khu_vuc }}')">
                                 <div class="text-sm">
-                                    <div class="font-medium text-gray-900">{{ $dc->dia_chi }}</div>
-                                    <div class="text-gray-500">{{ implode(', ', array_filter([$dc->phuong_xa, $dc->quan_huyen, $dc->tinh_thanh])) }}</div>
+                                    <div class="font-medium text-gray-900">{{ $dc->dia_chi_cu_the }}</div>
+                                    <div class="text-gray-500">{{ implode(', ', array_filter([$dc->phuong_xa, $dc->khu_vuc])) }}</div>
                                 </div>
                             </label>
                             @endforeach
@@ -79,7 +78,7 @@
                         <div class="sm:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ cụ thể <span class="text-red-500">*</span></label>
                             <input type="text" id="dia-chi" name="dia_chi" required
-                                value="{{ $khachHang->diaChis->first()?->dia_chi }}"
+                                value="{{ $khachHang->diaChis->first()?->dia_chi_cu_the }}"
                                 placeholder="Số nhà, tên đường..."
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>
@@ -98,7 +97,7 @@
                         <div class="sm:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố <span class="text-red-500">*</span></label>
                             <input type="text" id="tinh-thanh" name="tinh_thanh" required
-                                value="{{ $khachHang->diaChis->first()?->tinh_thanh }}"
+                                value="{{ $khachHang->diaChis->first()?->khu_vuc }}"
                                 placeholder="VD: TP. Hồ Chí Minh"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
                         </div>

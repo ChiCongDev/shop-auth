@@ -12,8 +12,10 @@ class ChiTietDonHang extends Model
         'don_hang_id',
         'san_pham_id',
         'so_luong',
-        'don_gia',
+        'gia_ban',
+        'chiet_khau',
         'thanh_tien',
+        'ghi_chu',
     ];
 
     public function sanPham()

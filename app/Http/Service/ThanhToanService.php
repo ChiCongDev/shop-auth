@@ -75,7 +75,7 @@ class ThanhToanService
                     'don_hang_id' => $donHang->id,
                     'san_pham_id' => $item->san_pham_id,
                     'so_luong'    => $item->so_luong,
-                    'don_gia'     => $item->gia,
+                    'gia_ban'     => $item->gia,
                     'thanh_tien'  => $item->so_luong * $item->gia,
                 ]);
             }

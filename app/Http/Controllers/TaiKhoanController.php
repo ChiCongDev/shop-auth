@@ -80,17 +80,15 @@ class TaiKhoanController extends Controller
     public function themDiaChi(Request $request)
     {
         $request->validate([
-            'dia_chi'   => 'required|string',
+            'dia_chi'    => 'required|string',
             'tinh_thanh' => 'required|string',
         ]);
 
         try {
             $this->khachHangService->themDiaChi(session('khach_hang_id'), [
-                'dia_chi'    => $request->dia_chi,
-                'phuong_xa'  => $request->phuong_xa,
-                'quan_huyen' => $request->quan_huyen,
-                'tinh_thanh' => $request->tinh_thanh,
-                'la_mac_dinh' => $request->has('la_mac_dinh'),
+                'dia_chi_cu_the' => $request->dia_chi,
+                'phuong_xa'      => $request->phuong_xa,
+                'khu_vuc'        => $request->tinh_thanh,
             ]);
 
             return back()->with('thongBao', 'Thêm địa chỉ thành công!');

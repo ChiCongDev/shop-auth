@@ -115,12 +115,6 @@ class KhachHangService
      */
     public function themDiaChi(int $khachHangId, array $data): DiaChi
     {
-        // Nếu là mặc định, bỏ mặc định các địa chỉ cũ
-        if (!empty($data['la_mac_dinh'])) {
-            DiaChi::where('khach_hang_id', $khachHangId)
-                ->update(['la_mac_dinh' => false]);
-        }
-
         return DiaChi::create(array_merge($data, ['khach_hang_id' => $khachHangId]));
     }
 }
