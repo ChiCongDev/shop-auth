@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Shop Auth - Global Styles */
+:root {
+    --color-primary: #1a1a2e;
+    --color-secondary: #16213e;
+    --color-accent: #d4af37;
+}
