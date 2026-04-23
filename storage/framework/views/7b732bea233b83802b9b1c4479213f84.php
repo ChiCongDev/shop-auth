@@ -18,7 +18,7 @@
         
         <div>
             
-            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-3">
+            <div class="aspect-square rounded-2xl overflow-hidden bg-gray-50 mb-3 cursor-pointer" onclick="moLightboxHienTai()">
                 <?php $anhChinh = $chiTiet['anh'][0] ?? null; ?>
                 <?php if($anhChinh): ?>
                     <img id="anh-chinh" src="<?php echo e(asset('storage/uploads/sanpham/' . $anhChinh)); ?>"
@@ -296,7 +296,103 @@
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 3000);
     }
+
+    // ==============================
+    // LIGHTBOX - Phóng to ảnh sản phẩm
+    // ==============================
+    const danhSachAnhLightbox = <?php echo json_encode($chiTiet['anh'], 15, 512) ?>;
+    const baseAnhUrl = '<?php echo e(asset('storage/uploads/sanpham')); ?>/';
+    let lightboxIndex = 0;
+
+    function moLightboxHienTai() {
+        const img = document.getElementById('anh-chinh');
+        if (!img) return moLightbox(0);
+        const src = img.src;
+        // Tìm index ảnh đang hiển thị
+        const idx = danhSachAnhLightbox.findIndex(a => src.includes(a));
+        moLightbox(idx >= 0 ? idx : 0);
+    }
+
+    function moLightbox(index) {
+        if (!danhSachAnhLightbox.length) return;
+        lightboxIndex = index;
+        const lb = document.getElementById('lightbox-sp');
+        lb.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        capNhatAnhLightbox();
+    }
+
+    function dongLightbox() {
+        document.getElementById('lightbox-sp').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function lightboxDi(delta) {
+        lightboxIndex = (lightboxIndex + delta + danhSachAnhLightbox.length) % danhSachAnhLightbox.length;
+        capNhatAnhLightbox();
+    }
+
+    function capNhatAnhLightbox() {
+        const img = document.getElementById('lightbox-img');
+        img.src = baseAnhUrl + danhSachAnhLightbox[lightboxIndex];
+        const counter = document.getElementById('lightbox-counter');
+        if (counter) {
+            counter.textContent = (lightboxIndex + 1) + ' / ' + danhSachAnhLightbox.length;
+        }
+    }
+
+    // Đóng lightbox bằng phím ESC, chuyển ảnh bằng phím mũi tên
+    document.addEventListener('keydown', function(e) {
+        const lb = document.getElementById('lightbox-sp');
+        if (lb.classList.contains('hidden')) return;
+        if (e.key === 'Escape') dongLightbox();
+        if (e.key === 'ArrowLeft') lightboxDi(-1);
+        if (e.key === 'ArrowRight') lightboxDi(1);
+    });
 </script>
+
+
+<div id="lightbox-sp" class="hidden fixed inset-0 z-[9999] flex items-center justify-center"
+     style="background:rgba(0,0,0,0.85); backdrop-filter:blur(8px)">
+
+    
+    <div class="absolute inset-0" onclick="dongLightbox()"></div>
+
+    
+    <button onclick="dongLightbox()"
+            class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            style="font-size:20px">✕</button>
+
+    
+    <?php if(count($chiTiet['anh']) > 1): ?>
+    <button onclick="event.stopPropagation(); lightboxDi(-1)"
+            class="absolute left-3 md:left-6 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors text-xl font-bold">‹</button>
+    <?php endif; ?>
+
+    
+    <div class="relative z-10 max-w-[90vw] max-h-[85vh] flex items-center justify-center" onclick="event.stopPropagation()">
+        <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+             style="animation: lbFadeIn .2s ease">
+    </div>
+
+    
+    <?php if(count($chiTiet['anh']) > 1): ?>
+    <button onclick="event.stopPropagation(); lightboxDi(1)"
+            class="absolute right-3 md:right-6 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors text-xl font-bold">›</button>
+    <?php endif; ?>
+
+    
+    <?php if(count($chiTiet['anh']) > 1): ?>
+    <div id="lightbox-counter" class="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 text-white/70 text-sm font-medium bg-black/30 px-3 py-1 rounded-full"></div>
+    <?php endif; ?>
+</div>
+
+<style>
+    @keyframes lbFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+</style>
 <?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\workspace\projects-company\shop-auth 21-4\shop-auth\resources\views/sanPham/chiTiet.blade.php ENDPATH**/ ?>
