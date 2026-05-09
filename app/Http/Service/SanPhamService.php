@@ -376,7 +376,12 @@ class SanPhamService
     /**
      * Tìm kiếm nhanh cho ô search (trả về JSON)
      */
-    public function timKiemNhanh(string $keyword, int $soLuong = 8): array
+    public function timKiemNhanh(
+        string $keyword,
+        int $soLuong = 8,
+        string $loai = '',
+        string $nhanHieu = ''
+    ): array
     {
         if (strlen(trim($keyword)) < 2) return [];
 
@@ -391,8 +396,25 @@ class SanPhamService
             })
             ->groupBy('sp.ma_chung')
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0')
-            ->limit($soLuong)
-            ->pluck('min_id');
+            ->limit($soLuong);
+
+        if ($loai !== '') {
+            if ($loai === 'quan-ao') {
+                $ids->whereIn('sp.loai_san_pham', ['Áo', 'Quần', 'Váy', 'Set Quần Áo', 'Áo Thun']);
+            } elseif ($loai === 'giay-dep') {
+                $ids->whereIn('sp.loai_san_pham', ['Giày', 'Dép']);
+            } elseif ($loai === 'balo-tui') {
+                $ids->whereIn('sp.loai_san_pham', ['Balo', 'Túi']);
+            } else {
+                $ids->where('sp.loai_san_pham', $loai);
+            }
+        }
+
+        if ($nhanHieu !== '') {
+            $ids->where('sp.nhan_hieu', $nhanHieu);
+        }
+
+        $ids = $ids->pluck('min_id');
 
         return SanPham::whereIn('id', $ids)
             ->get()

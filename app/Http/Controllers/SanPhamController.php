@@ -97,7 +97,12 @@ class SanPhamController extends Controller
     public function apiTimKiem(Request $request)
     {
         $keyword  = $request->get('search', '');
-        $ketQua   = $this->sanPhamService->timKiemNhanh($keyword, 8);
+        $ketQua   = $this->sanPhamService->timKiemNhanh(
+            keyword:  $keyword,
+            soLuong:  8,
+            loai:     (string) $request->get('loai', ''),
+            nhanHieu: (string) $request->get('nhan_hieu', ''),
+        );
 
         return response()->json([
             'success' => true,
