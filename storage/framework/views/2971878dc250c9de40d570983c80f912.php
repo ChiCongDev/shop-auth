@@ -63,6 +63,30 @@
                         <span class="absolute -top-2 -right-5 px-1.5 py-0.5 rounded-full text-white font-bold leading-none"
                               style="font-size:9px; background:#ff4d4f">NEW</span>
                     </a>
+                    <?php if(session('doi_tac_id')): ?>
+                    <div class="group relative">
+                        <a href="/doi-tac/order-hang/danh-sach"
+                           class="inline-flex items-center gap-1.5 font-semibold transition-colors"
+                           style="color:#d4af37">
+                            Quản lý hàng order
+                            <svg class="h-4 w-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </a>
+                        <div class="invisible absolute left-0 top-full z-50 mt-3 w-72 rounded-2xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100">
+                            <a href="/doi-tac/order-hang/tao" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Tạo đơn order</a>
+                            <a href="/doi-tac/order-hang/danh-sach" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách đơn order</a>
+                            <a href="/doi-tac/order-hang/danh-sach-khach-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách khách hàng</a>
+                            <div class="my-1 border-t border-gray-100"></div>
+                            <a href="/doi-tac/order-hang/hang-order-ve" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Hàng order về</a>
+                            <?php if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'quan_ly_order'], true)): ?>
+                                <a href="/doi-tac/order-hang/khach-tra-hang-order" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Khách trả hàng order</a>
+                            <?php endif; ?>
+                            <div class="my-1 border-t border-gray-100"></div>
+                            <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Hàng được phép order</a>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </nav>
 
                 
@@ -156,7 +180,30 @@
                             </a>
                         </div>
                     </div>
+                    <?php elseif(session('doi_tac_id')): ?>
+                    <div class="relative" id="wrap-doi-tac">
+                        <button id="btn-doi-tac"
+                                class="flex items-center gap-1.5 touch-min px-1 text-gray-700 hover:text-gray-900 transition-colors">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                 style="background:#d4af37">
+                                <?php echo e(mb_substr(session('doi_tac_ten', 'D'), 0, 1)); ?>
+
+                            </div>
+                            <span class="hidden md:block text-sm font-medium"><?php echo e(session('doi_tac_ten')); ?></span>
+                        </button>
+                        <div id="dropdown-doi-tac"
+                             class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg py-1 z-50 border border-gray-100">
+                            <a href="/doi-tac/order-hang/danh-sach" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Đơn order của tôi</a>
+                            <a href="/doi-tac/order-hang/tao" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Tạo đơn order</a>
+                            <?php if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'quan_ly_order'], true)): ?>
+                                <a href="/doi-tac/order-hang/khach-tra-hang-order" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Khách trả hàng order</a>
+                            <?php endif; ?>
+                            <hr class="my-1 border-gray-100">
+                            <a href="/doi-tac/dang-xuat" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50">Đăng xuất đối tác</a>
+                        </div>
+                    </div>
                     <?php else: ?>
+                        <a href="/doi-tac/dang-nhap" class="hidden md:flex touch-min px-3 text-sm font-semibold hover:opacity-80" style="color:#d4af37">Đối tác</a>
                         <a href="/dang-nhap" class="hidden md:flex touch-min px-3 text-sm font-medium text-gray-600 hover:text-gray-900">Đăng nhập</a>
                         <a href="/dang-ky" class="hidden md:flex touch-min px-4 text-sm font-semibold text-white rounded-full hover:opacity-90"
                            style="background: linear-gradient(135deg, #1a1a2e, #d4af37)">Đăng ký</a>
@@ -231,6 +278,7 @@
     </main>
 
     
+    <?php if (! (View::hasSection('hideFooter'))): ?>
     <footer class="hidden md:block mt-20 text-white py-12" style="background: #1a1a2e">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -270,6 +318,7 @@
             </div>
         </div>
     </footer>
+    <?php endif; ?>
 
     
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 bottom-nav">
@@ -327,6 +376,16 @@
                 </svg>
                 <span class="text-xs font-medium">Tài khoản</span>
             </a>
+            <?php elseif(session('doi_tac_id')): ?>
+            <a href="/doi-tac/order-hang/danh-sach"
+               class="flex flex-col items-center justify-center py-1.5 gap-0.5
+                      <?php echo e(Request::is('doi-tac/order-hang*') ? 'text-yellow-500' : 'text-gray-500 hover:text-gray-700'); ?>">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5h6m-7 4h8m-8 4h5m-7 8h12a2 2 0 002-2V7.5a2 2 0 00-.59-1.41l-3.5-3.5A2 2 0 0014.5 2H6a2 2 0 00-2 2v15a2 2 0 002 2z"/>
+                </svg>
+                <span class="text-xs font-medium">Order</span>
+            </a>
             <?php else: ?>
             <a href="/dang-nhap"
                class="flex flex-col items-center justify-center py-1.5 gap-0.5 text-gray-500 hover:text-gray-700">
@@ -365,6 +424,16 @@
                 ddTK.classList.toggle('hidden');
             });
             document.addEventListener('click', () => ddTK.classList.add('hidden'));
+        }
+
+        const btnDT = document.getElementById('btn-doi-tac');
+        const ddDT  = document.getElementById('dropdown-doi-tac');
+        if (btnDT && ddDT) {
+            btnDT.addEventListener('click', e => {
+                e.stopPropagation();
+                ddDT.classList.toggle('hidden');
+            });
+            document.addEventListener('click', () => ddDT.classList.add('hidden'));
         }
     })();
     </script>

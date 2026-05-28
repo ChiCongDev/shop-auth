@@ -13,13 +13,24 @@
 
         
         <div class="flex overflow-x-auto scroll-hide gap-2.5 px-4 pb-1">
-            <?php $__currentLoopData = [
+            <?php
+                $danhMucTrangChu = [
                 ['href' => '/san-pham',              'icon' => '🛍️', 'label' => 'Tất cả'],
                 ['href' => '/san-pham?loai=quan-ao', 'icon' => '👕', 'label' => 'Quần Áo'],
                 ['href' => '/san-pham?loai=giay-dep','icon' => '👟', 'label' => 'Giày Dép'],
                 ['href' => '/san-pham?loai=Mũ',      'icon' => '🧢', 'label' => 'Mũ'],
                 ['href' => '/san-pham?loai=balo-tui', 'icon' => '🎒', 'label' => 'Balo'],
-            ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                ];
+
+                if (session('doi_tac_id')) {
+                    $danhMucTrangChu[] = [
+                        'href' => '/doi-tac/order-hang/san-pham-duoc-phep',
+                        'icon' => '📦',
+                        'label' => 'Hàng được phép order',
+                    ];
+                }
+            ?>
+            <?php $__currentLoopData = $danhMucTrangChu; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <a href="<?php echo e($dm['href']); ?>"
                class="flex-none flex flex-col items-center gap-1.5 py-2.5 px-4 bg-gray-50
                       rounded-2xl border border-gray-100 hover:bg-yellow-50 hover:border-yellow-200

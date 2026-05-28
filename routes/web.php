@@ -6,6 +6,8 @@ use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\GioHangController;
 use App\Http\Controllers\ThanhToanController;
 use App\Http\Controllers\TaiKhoanController;
+use App\Http\Controllers\DoiTacController;
+use App\Http\Controllers\DoiTacOrderHangController;
 
 // ============================================================
 // 🌐 ROUTE CÔNG KHAI — Không cần đăng nhập
@@ -49,6 +51,73 @@ Route::post('/dang-ky', [KhachHangController::class, 'xuLyDangKy'])->name('xuLyD
 Route::get('/dang-xuat', [KhachHangController::class, 'dangXuat'])
     ->middleware('kiemTraDangNhap')
     ->name('dangXuat');
+
+// ============================================================
+// KHU DOI TAC - NHAN VIEN BAN HANG
+// ============================================================
+
+Route::get('/doi-tac/dang-nhap', [DoiTacController::class, 'dangNhap'])->name('doiTac.dangNhap');
+Route::post('/doi-tac/dang-nhap', [DoiTacController::class, 'xuLyDangNhap'])->name('doiTac.xuLyDangNhap');
+Route::get('/doi-tac/dang-xuat', [DoiTacController::class, 'dangXuat'])
+    ->middleware('kiemTraDoiTac')
+    ->name('doiTac.dangXuat');
+
+Route::prefix('doi-tac/order-hang')->middleware('kiemTraDoiTac')->group(function () {
+    Route::get('/tao', [DoiTacOrderHangController::class, 'hienThiTaoDonOrder'])->name('doiTac.orderHang.tao');
+    Route::get('/danh-sach', [DoiTacOrderHangController::class, 'hienThiDanhSach'])->name('doiTac.orderHang.danhSach');
+    Route::get('/hang-order-ve', [DoiTacOrderHangController::class, 'hienThiHangOrderVe'])->name('doiTac.orderHang.hangOrderVe');
+    Route::get('/san-pham-duoc-phep', [DoiTacOrderHangController::class, 'hienThiSanPhamDuocPhep'])->name('doiTac.orderHang.sanPhamDuocPhep');
+    Route::get('/gio-order', [DoiTacOrderHangController::class, 'hienThiGioOrder'])->name('doiTac.orderHang.gioOrder');
+    Route::get('/danh-sach-khach-hang', [DoiTacOrderHangController::class, 'hienThiDanhSachKhachHangOrder'])->name('doiTac.orderHang.danhSachKhachHang');
+    Route::get('/san-pham-duoc-phep/{maChung}', [DoiTacOrderHangController::class, 'hienThiChiTietSanPhamDuocPhep'])
+        ->name('doiTac.orderHang.sanPhamDuocPhepChiTiet');
+    Route::get('/don-ban/{id}', [DoiTacOrderHangController::class, 'hienThiChiTietDonBan'])
+        ->where('id', '[0-9]+')
+        ->name('doiTac.orderHang.donBanChiTiet');
+    Route::get('/don-ban/{id}/doi-tra', [DoiTacOrderHangController::class, 'hienThiDoiTraHang'])
+        ->where('id', '[0-9]+')
+        ->name('doiTac.orderHang.doiTraHang');
+    Route::get('/khach-tra-hang-order', [DoiTacOrderHangController::class, 'hienThiDanhSachPhieuTraHang'])
+        ->name('doiTac.orderHang.khachTraHangOrder');
+    Route::get('/chi-tiet/{id}', [DoiTacOrderHangController::class, 'hienThiChiTiet'])
+        ->where('id', '[0-9]+')
+        ->name('doiTac.orderHang.chiTiet');
+});
+
+Route::prefix('api/doi-tac/order-hang')->middleware('kiemTraDoiTac')->group(function () {
+    Route::get('/tim-khach-hang', [DoiTacOrderHangController::class, 'apiTimKiemKhachHang']);
+    Route::get('/tim-san-pham-order', [DoiTacOrderHangController::class, 'apiTimKiemSanPhamOrder']);
+    Route::get('/san-pham-duoc-phep', [DoiTacOrderHangController::class, 'apiDanhSachSanPhamDuocPhep']);
+    Route::get('/san-pham-duoc-phep/{maChung}', [DoiTacOrderHangController::class, 'apiChiTietSanPhamDuocPhep']);
+    Route::get('/san-pham-order/{id}', [DoiTacOrderHangController::class, 'apiLaySanPhamOrder'])->where('id', '[0-9]+');
+    Route::post('/tao', [DoiTacOrderHangController::class, 'apiTaoDonOrder']);
+    Route::get('/gio-order', [DoiTacOrderHangController::class, 'apiLayGioOrder']);
+    Route::post('/gio-order/them', [DoiTacOrderHangController::class, 'apiThemGioOrder']);
+    Route::put('/gio-order/cap-nhat', [DoiTacOrderHangController::class, 'apiCapNhatGioOrder']);
+    Route::delete('/gio-order/xoa', [DoiTacOrderHangController::class, 'apiXoaGioOrder']);
+    Route::delete('/gio-order/xoa-tat-ca', [DoiTacOrderHangController::class, 'apiXoaTatCaGioOrder']);
+    Route::get('/danh-sach-khach-hang', [DoiTacOrderHangController::class, 'apiLayDanhSachKhachHangOrder']);
+    Route::get('/danh-sach', [DoiTacOrderHangController::class, 'apiLayDanhSach']);
+    Route::get('/danh-sach-don-order', [DoiTacOrderHangController::class, 'apiLayDanhSachDonBanTuOrder']);
+    Route::get('/don-ban/{id}', [DoiTacOrderHangController::class, 'apiLayChiTietDonBanTuOrder'])->where('id', '[0-9]+');
+    Route::get('/phieu-tra-hang/danh-sach', [DoiTacOrderHangController::class, 'apiLayDanhSachPhieuTraHang']);
+    Route::get('/phieu-tra-hang/so-luong-da-tra/{donHangId}', [DoiTacOrderHangController::class, 'apiLaySoLuongDaTra'])
+        ->where('donHangId', '[0-9]+');
+    Route::get('/phieu-tra-hang/{id}', [DoiTacOrderHangController::class, 'apiLayChiTietPhieuTraHang'])
+        ->where('id', '[0-9]+');
+    Route::post('/phieu-tra-hang/tao', [DoiTacOrderHangController::class, 'apiTaoPhieuTraHang']);
+    Route::post('/phieu-tra-hang/{id}/hoan-tien', [DoiTacOrderHangController::class, 'apiHoanTienPhieuTraHang'])
+        ->where('id', '[0-9]+');
+    Route::post('/don-ban/{id}/{hanhDong}', [DoiTacOrderHangController::class, 'apiThaoTacDonBanTuOrder'])
+        ->where('id', '[0-9]+')
+        ->whereIn('hanhDong', ['duyet', 'bao-hang-ve', 'xuat-kho', 'dong-goi', 'van-chuyen', 'tu-van-chuyen-ntq', 'hoan-thanh']);
+    Route::get('/hang-order-ve', [DoiTacOrderHangController::class, 'apiLayHangOrderVe']);
+    Route::get('/thong-ke-trang-thai', [DoiTacOrderHangController::class, 'apiThongKeTrangThai']);
+    Route::post('/chi-tiet/{id}/huy', [DoiTacOrderHangController::class, 'apiHuyChiTietDonOrder'])->where('id', '[0-9]+');
+    Route::get('/{id}', [DoiTacOrderHangController::class, 'apiLayChiTiet'])->where('id', '[0-9]+');
+    Route::post('/{id}/chuyen-don-ban', [DoiTacOrderHangController::class, 'apiChuyenDonBan'])->where('id', '[0-9]+');
+    Route::post('/{id}/huy', [DoiTacOrderHangController::class, 'apiHuyDonOrder'])->where('id', '[0-9]+');
+});
 
 // ============================================================
 // 🔒 ROUTE RIÊNG TƯ — Yêu cầu đăng nhập

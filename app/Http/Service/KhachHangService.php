@@ -2,9 +2,10 @@
 
 namespace App\Http\Service;
 
+use App\Models\DiaChi;
 use App\Models\KhachHang;
 use App\Models\KhachHangMatKhau;
-use App\Models\DiaChi;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -20,20 +21,22 @@ class KhachHangService
     {
         $khachHang = KhachHang::where('email', $email)->first();
 
-        if (!$khachHang) return false;
+        if (! $khachHang) {
+            return false;
+        }
 
         $matKhauRecord = KhachHangMatKhau::where('khach_hang_id', $khachHang->id)->first();
 
-        if (!$matKhauRecord || !Hash::check($matKhau, $matKhauRecord->mat_khau)) {
+        if (! $matKhauRecord || ! Hash::check($matKhau, $matKhauRecord->mat_khau)) {
             return false;
         }
 
         // Lưu session — giống hệt pattern nội bộ
         session([
-            'khach_hang_id'    => $khachHang->id,
-            'tenDangNhap'      => $khachHang->ten,
-            'emailDangNhap'    => $khachHang->email,
-            'sdtDangNhap'      => $khachHang->sdt,
+            'khach_hang_id' => $khachHang->id,
+            'tenDangNhap' => $khachHang->ten,
+            'emailDangNhap' => $khachHang->email,
+            'sdtDangNhap' => $khachHang->sdt,
         ]);
 
         return true;
@@ -56,21 +59,23 @@ class KhachHangService
 
         // Tạo khách hàng trong bảng chung
         // nhan_vien_id = 0 → quy ước: khách tự đăng ký qua web bán lẻ (không qua nhân viên)
-        $khachHang = KhachHang::create([
-            'ten'            => $ten,
-            'sdt'            => $sdt,
-            'email'          => $email,
-            'ma_khach_hang'  => 'KH' . now()->format('ymd') . rand(1000, 9999),
-            'nhan_vien_id'   => 0,  // 0 = tự đăng ký qua web
-        ]);
+        return DB::transaction(function () use ($ten, $sdt, $email, $matKhau) {
+            $khachHang = KhachHang::create([
+                'ten' => $ten,
+                'sdt' => $sdt,
+                'email' => $email,
+                'ma_khach_hang' => 'KH'.now()->format('ymd').rand(1000, 9999),
+                'nhan_vien_id' => 0,  // 0 = tự đăng ký qua web
+            ]);
 
-        // Lưu mật khẩu vào bảng riêng
-        KhachHangMatKhau::create([
-            'khach_hang_id' => $khachHang->id,
-            'mat_khau'      => Hash::make($matKhau),
-        ]);
+            // Lưu mật khẩu vào bảng riêng
+            KhachHangMatKhau::create([
+                'khach_hang_id' => $khachHang->id,
+                'mat_khau' => Hash::make($matKhau),
+            ]);
 
-        return $khachHang;
+            return $khachHang;
+        });
     }
 
     /**
@@ -79,7 +84,10 @@ class KhachHangService
     public function layKhachHangDangNhap(): ?KhachHang
     {
         $id = session('khach_hang_id');
-        if (!$id) return null;
+        if (! $id) {
+            return null;
+        }
+
         return KhachHang::find($id);
     }
 
@@ -107,6 +115,7 @@ class KhachHangService
     {
         $khachHang = KhachHang::findOrFail($id);
         $khachHang->update($data);
+
         return $khachHang;
     }
 

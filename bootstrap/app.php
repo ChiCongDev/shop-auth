@@ -13,8 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'kiemTraDangNhap' => \App\Http\Middleware\KiemTraDangNhap::class,
+            'kiemTraDoiTac' => \App\Http\Middleware\KiemTraDoiTacDangNhap::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+
+
+    

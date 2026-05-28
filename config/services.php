@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'sell_internal' => [
+        'url' => env('SELL_INTERNAL_URL'),
+        'token' => env('SELL_INTERNAL_TOKEN'),
+        'timeout' => env('SELL_INTERNAL_TIMEOUT', 10),
+    ],
+
 ];

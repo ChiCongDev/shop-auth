@@ -60,4 +60,15 @@ class KhachHang extends Model
     {
         return $this->belongsTo(NhomKhachHang::class, 'nhom_khach_hang_id');
     }
+
+    public function nhanViens()
+    {
+        return $this->belongsToMany(NhanVien::class, 'khach_hang_nhan_vien')
+            ->withPivot('created_at');
+    }
+
+    public function donOrderHangs()
+    {
+        return $this->hasMany(DonOrderHang::class, 'khach_hang_id');
+    }
 }

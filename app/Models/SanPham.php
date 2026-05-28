@@ -65,6 +65,11 @@ class SanPham extends Model
         return $this->hasMany(KhoHangSanPham::class, 'san_pham_id');
     }
 
+    public function sanPhamGias()
+    {
+        return $this->hasMany(SanPhamGia::class, 'san_pham_id');
+    }
+
     /**
      * Tổng tồn kho tất cả kho
      */
@@ -90,6 +95,11 @@ class SanPham extends Model
     public function chiTietDonHangs()
     {
         return $this->hasMany(ChiTietDonHang::class, 'san_pham_id');
+    }
+
+    public function chiTietDonOrderHangs()
+    {
+        return $this->hasMany(ChiTietDonOrderHang::class, 'san_pham_id');
     }
 
     /**
