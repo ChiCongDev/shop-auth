@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('doi_tac_gio_order_hangs')) {
+            return;
+        }
+
         Schema::create('doi_tac_gio_order_hangs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('doi_tac_id')->unique();

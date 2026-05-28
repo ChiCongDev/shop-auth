@@ -63,7 +63,7 @@
                         <span class="absolute -top-2 -right-5 px-1.5 py-0.5 rounded-full text-white font-bold leading-none"
                               style="font-size:9px; background:#ff4d4f">NEW</span>
                     </a>
-                    @if(session('doi_tac_id'))
+                    @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
                     <div class="group relative">
                         <a href="/doi-tac/order-hang/danh-sach"
                            class="inline-flex items-center gap-1.5 font-semibold transition-colors"
@@ -178,7 +178,7 @@
                             </a>
                         </div>
                     </div>
-                    @elseif(session('doi_tac_id'))
+                    @elseif(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
                     <div class="relative" id="wrap-doi-tac">
                         <button id="btn-doi-tac"
                                 class="flex items-center gap-1.5 touch-min px-1 text-gray-700 hover:text-gray-900 transition-colors">
@@ -200,7 +200,9 @@
                         </div>
                     </div>
                     @else
-                        <a href="/doi-tac/dang-nhap" class="hidden md:flex touch-min px-3 text-sm font-semibold hover:opacity-80" style="color:#d4af37">Đối tác</a>
+                        @if(config('services.doi_tac_order.enabled', false))
+                            <a href="/doi-tac/dang-nhap" class="hidden md:flex touch-min px-3 text-sm font-semibold hover:opacity-80" style="color:#d4af37">Đối tác</a>
+                        @endif
                         <a href="/dang-nhap" class="hidden md:flex touch-min px-3 text-sm font-medium text-gray-600 hover:text-gray-900">Đăng nhập</a>
                         <a href="/dang-ky" class="hidden md:flex touch-min px-4 text-sm font-semibold text-white rounded-full hover:opacity-90"
                            style="background: linear-gradient(135deg, #1a1a2e, #d4af37)">Đăng ký</a>
@@ -372,7 +374,7 @@
                 </svg>
                 <span class="text-xs font-medium">Tài khoản</span>
             </a>
-            @elseif(session('doi_tac_id'))
+            @elseif(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
             <a href="/doi-tac/order-hang/danh-sach"
                class="flex flex-col items-center justify-center py-1.5 gap-0.5
                       {{ Request::is('doi-tac/order-hang*') ? 'text-yellow-500' : 'text-gray-500 hover:text-gray-700' }}">

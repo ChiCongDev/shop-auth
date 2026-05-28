@@ -75,6 +75,14 @@ class DoiTacPhieuTraHangNoiBoService
 
     private function guiRequest(string $method, string $path, array $data, array $logContext = []): array
     {
+        if (!config('services.sell_internal.enabled', false)) {
+            return [
+                'success' => false,
+                'message' => 'Ket noi API noi bo sell dang tat.',
+                'status' => 503,
+            ];
+        }
+
         $baseUrl = rtrim((string) config('services.sell_internal.url'), '/');
         $token = (string) config('services.sell_internal.token');
 

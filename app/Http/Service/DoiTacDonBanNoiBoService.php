@@ -86,6 +86,14 @@ class DoiTacDonBanNoiBoService
 
     private function guiPost(string $path, array $payload, array $logContext = []): array
     {
+        if (!config('services.sell_internal.enabled', false)) {
+            return [
+                'success' => false,
+                'message' => 'Ket noi API noi bo sell dang tat.',
+                'status' => 503,
+            ];
+        }
+
         $baseUrl = rtrim((string) config('services.sell_internal.url'), '/');
         $token = (string) config('services.sell_internal.token');
 

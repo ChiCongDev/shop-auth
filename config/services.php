@@ -36,9 +36,14 @@ return [
     ],
 
     'sell_internal' => [
+        'enabled' => env('SELL_INTERNAL_ENABLED', false),
         'url' => env('SELL_INTERNAL_URL'),
         'token' => env('SELL_INTERNAL_TOKEN'),
         'timeout' => env('SELL_INTERNAL_TIMEOUT', 10),
+    ],
+
+    'doi_tac_order' => [
+        'enabled' => env('DOI_TAC_ORDER_ENABLED', false),
     ],
 
 ];

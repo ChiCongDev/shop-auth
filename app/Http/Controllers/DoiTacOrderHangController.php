@@ -811,6 +811,10 @@ class DoiTacOrderHangController extends Controller
 
     public function apiThaoTacDonBanTuOrder(int $id, string $hanhDong)
     {
+        if (!$this->coQuyenThaoTacDonBan($hanhDong)) {
+            return response()->json(['success' => false, 'message' => 'Ban khong co quyen thuc hien thao tac nay.'], 403);
+        }
+
         $nhanVienId = (int) session('doi_tac_id');
         $duLieu = $this->orderHangService->layChiTietDonBanTuOrder($id, $nhanVienId, session('doi_tac_quyen'));
 
@@ -876,6 +880,10 @@ class DoiTacOrderHangController extends Controller
 
     public function apiChuyenDonBan(Request $request, int $id)
     {
+        if (!$this->coQuyenThaoTacDonOrder('chuyen-don-ban')) {
+            return response()->json(['success' => false, 'message' => 'Ban khong co quyen tao don ban tu don order.'], 403);
+        }
+
         $donOrder = $this->orderHangService->layChiTiet($id, (int) session('doi_tac_id'), session('doi_tac_quyen'));
         if (!$donOrder) {
             return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn order hoặc bạn không có quyền thao tác đơn này.'], 404);
@@ -894,6 +902,10 @@ class DoiTacOrderHangController extends Controller
 
     public function apiHuyDonOrder(int $id)
     {
+        if (!$this->coQuyenThaoTacDonOrder('huy-don-order')) {
+            return response()->json(['success' => false, 'message' => 'Ban khong co quyen huy don order.'], 403);
+        }
+
         $donOrder = $this->orderHangService->layChiTiet($id, (int) session('doi_tac_id'), session('doi_tac_quyen'));
         if (!$donOrder) {
             return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn order hoặc bạn không có quyền hủy đơn này.'], 404);
@@ -910,6 +922,10 @@ class DoiTacOrderHangController extends Controller
 
     public function apiHuyChiTietDonOrder(int $id)
     {
+        if (!$this->coQuyenThaoTacDonOrder('huy-chi-tiet-order')) {
+            return response()->json(['success' => false, 'message' => 'Ban khong co quyen huy dong order.'], 403);
+        }
+
         $ketQua = $this->donBanNoiBoService->guiHuyChiTietDonOrder($id, (int) session('doi_tac_id'));
 
         return response()->json([
@@ -956,6 +972,34 @@ class DoiTacOrderHangController extends Controller
     private function coQuyenQuanLyPhieuTraHang(): bool
     {
         return in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'quan_ly_order'], true);
+    }
+
+    private function coQuyenThaoTacDonBan(string $hanhDong): bool
+    {
+        $quyen = session('doi_tac_quyen');
+        $quyenTheoHanhDong = [
+            'duyet' => ['admin', 'quan_ly_order'],
+            'bao-hang-ve' => ['admin', 'thu_kho', 'quan_ly_order'],
+            'xuat-kho' => ['admin', 'thu_kho', 'quan_ly_order'],
+            'dong-goi' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'van-chuyen' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'tu-van-chuyen-ntq' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'hoan-thanh' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+        ];
+
+        return in_array($quyen, $quyenTheoHanhDong[$hanhDong] ?? [], true);
+    }
+
+    private function coQuyenThaoTacDonOrder(string $hanhDong): bool
+    {
+        $quyen = session('doi_tac_quyen');
+        $quyenTheoHanhDong = [
+            'chuyen-don-ban' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'huy-don-order' => ['admin', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'huy-chi-tiet-order' => ['admin', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+        ];
+
+        return in_array($quyen, $quyenTheoHanhDong[$hanhDong] ?? [], true);
     }
 
     private function kiemTraNhanVienBanHangPhuTrach(int $khachHangId, ?int $nhanVienBanHangId, ?string $quyen): ?string
