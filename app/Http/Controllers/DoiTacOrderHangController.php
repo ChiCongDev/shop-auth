@@ -849,7 +849,7 @@ class DoiTacOrderHangController extends Controller
         ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
     }
 
-    public function apiThaoTacDonBanTuOrder(int $id, string $hanhDong)
+    public function apiThaoTacDonBanTuOrder(Request $request, int $id, string $hanhDong)
     {
         if (!$this->coQuyenThaoTacDonBan($hanhDong)) {
             return response()->json(['success' => false, 'message' => 'Ban khong co quyen thuc hien thao tac nay.'], 403);
@@ -865,7 +865,16 @@ class DoiTacOrderHangController extends Controller
             ], 404);
         }
 
-        $ketQua = $this->donBanNoiBoService->guiThaoTac($id, $nhanVienId, $hanhDong);
+        $payload = [];
+        if ($hanhDong === 'lay-hang-trong-kho') {
+            $payload = $request->validate([
+                'san_phams' => 'required|array|min:1',
+                'san_phams.*.san_pham_id' => 'required|integer|min:1',
+                'san_phams.*.so_luong' => 'required|integer|min:1',
+            ]);
+        }
+
+        $ketQua = $this->donBanNoiBoService->guiThaoTac($id, $nhanVienId, $hanhDong, $payload);
 
         return response()->json([
             'success' => $ketQua['success'],

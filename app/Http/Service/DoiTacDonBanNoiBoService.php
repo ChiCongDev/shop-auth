@@ -18,7 +18,7 @@ class DoiTacDonBanNoiBoService
         'hoan-thanh',
     ];
 
-    public function guiThaoTac(int $donHangId, int $nhanVienId, string $hanhDong): array
+    public function guiThaoTac(int $donHangId, int $nhanVienId, string $hanhDong, array $payload = []): array
     {
         if (!in_array($hanhDong, $this->hanhDongDuocPhep, true)) {
             return [
@@ -28,10 +28,10 @@ class DoiTacDonBanNoiBoService
             ];
         }
 
-        return $this->guiPost('/api/noi-bo/don-order/' . $donHangId . '/' . $hanhDong, [
+        return $this->guiPost('/api/noi-bo/don-order/' . $donHangId . '/' . $hanhDong, array_merge($payload, [
             'nhan_vien_id' => $nhanVienId,
             'nguon' => 'shop_auth_doi_tac',
-        ], [
+        ]), [
             'don_hang_id' => $donHangId,
             'nhan_vien_id' => $nhanVienId,
             'hanh_dong' => $hanhDong,
