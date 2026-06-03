@@ -22,6 +22,11 @@ class DoiTacGioOrderHangService
     public function themSanPham(int $doiTacId, int $sanPhamId, int $soLuong = 1): DoiTacGioOrderHang
     {
         $sanPham = SanPham::where('duoc_phep_order', true)->findOrFail($sanPhamId);
+        $giaOrder = $this->layGiaOrderTamTinh($sanPham);
+        if ($giaOrder <= 0) {
+            throw new \RuntimeException('San pham order chua co gia order hop le.');
+        }
+
         $gioOrder = $this->layHoacTaoGioOrder($doiTacId);
 
         $chiTiet = DoiTacGioOrderChiTiet::firstOrNew([
@@ -30,7 +35,7 @@ class DoiTacGioOrderHangService
         ]);
 
         $chiTiet->so_luong = max(1, (int) ($chiTiet->exists ? $chiTiet->so_luong : 0) + $soLuong);
-        $chiTiet->gia_order_tam_tinh = $this->layGiaOrderTamTinh($sanPham);
+        $chiTiet->gia_order_tam_tinh = $giaOrder;
         $chiTiet->save();
 
         return $this->layGioOrder($doiTacId);
@@ -105,7 +110,7 @@ class DoiTacGioOrderHangService
             return (float) $sanPham->gia_order;
         }
 
-        return (float) ($sanPham->gia_ban_le ?? 0);
+        return 0;
     }
 
     private function layAnhChinh($anhSanPham): ?string

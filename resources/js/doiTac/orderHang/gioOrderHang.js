@@ -218,6 +218,29 @@ window.chonKhachHangGioOrder = (id) => {
     renderNhanVienBanHang();
 };
 
+async function tuChonKhachMacDinhGioOrderNeuCo() {
+    if (state.khachHang) return;
+
+    try {
+        const res = await fetch('/api/doi-tac/order-hang/khach-hang-mac-dinh', {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const data = await res.json();
+        const khachHang = data.success && data.auto_select ? data.data : null;
+
+        if (!res.ok || !khachHang?.id || state.khachHang) {
+            return;
+        }
+
+        state.dropdownKhach.set(Number(khachHang.id), khachHang);
+        window.chonKhachHangGioOrder(khachHang.id);
+    } catch (error) {
+        console.error('Loi tu chon khach order mac dinh gio order doi tac:', error);
+    }
+}
+
 function xoaKhachDaChon() {
     state.khachHang = null;
     state.nhanVienBanHangId = null;
@@ -278,6 +301,11 @@ async function taoDonOrderTuGio() {
         return;
     }
 
+    if (items.some(item => Number(item.gia_order_tam_tinh || 0) <= 0)) {
+        showToast('Thieu gia order', 'Gio order co san pham chua co gia order hop le.', 'error');
+        return;
+    }
+
     const btn = document.getElementById('btn-tao-order-tu-gio');
     btn.disabled = true;
     btn.textContent = 'Đang tạo...';
@@ -319,8 +347,10 @@ async function taoDonOrderTuGio() {
             return;
         }
 
-        showToast('Thành công', `Đã tạo đơn ${data.data?.ma_don_order || 'order'}.`);
-        await taiGioOrder();
+        const maDonHang = data.data?.ma_don_hang || '';
+        showToast('Thành công', `Đã tạo đơn ${maDonHang || 'order'}.`);
+        const query = maDonHang ? `?search=${encodeURIComponent(maDonHang)}` : '';
+        setTimeout(() => window.location.href = `/doi-tac/order-hang/danh-sach${query}`, 800);
     } finally {
         btn.disabled = false;
         btn.textContent = 'Tạo đơn order';
@@ -338,3 +368,4 @@ document.addEventListener('click', e => {
 });
 
 taiGioOrder();
+tuChonKhachMacDinhGioOrderNeuCo();

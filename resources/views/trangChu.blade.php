@@ -28,7 +28,7 @@
                     $danhMucTrangChu[] = [
                         'href' => '/doi-tac/order-hang/san-pham-duoc-phep',
                         'icon' => '📦',
-                        'label' => 'Hàng được phép order',
+                        'label' => 'Deal Order',
                     ];
                 }
             @endphp

@@ -16,26 +16,31 @@
         </a>
     </div>
 
-    <div class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <div class="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         @foreach([
             ['ma' => 'cho_xu_ly', 'ten' => 'Chờ xử lý', 'lop' => 'bg-yellow-100 text-yellow-700'],
+            ['ma' => 'duyet_don_order', 'ten' => 'Duyệt đơn', 'lop' => 'bg-blue-100 text-blue-700'],
+            ['ma' => 'bao_hang_ve_order', 'ten' => 'Báo hàng về', 'lop' => 'bg-green-100 text-green-700'],
+            ['ma' => 'bao_hang_ve_order_mot_phan', 'ten' => 'Báo hàng về 1 phần', 'lop' => 'bg-amber-100 text-amber-700'],
             ['ma' => 'xuat_kho', 'ten' => 'Xuất kho', 'lop' => 'bg-green-100 text-green-700'],
             ['ma' => 'dong_goi', 'ten' => 'Đóng gói', 'lop' => 'bg-emerald-100 text-emerald-700'],
             ['ma' => 'van_chuyen', 'ten' => 'Shipper đã lấy hàng', 'lop' => 'bg-purple-100 text-purple-700'],
             ['ma' => 'hoan_thanh', 'ten' => 'Khách đã nhận hàng', 'lop' => 'bg-green-100 text-green-700'],
             ['ma' => 'huy', 'ten' => 'Đã hủy', 'lop' => 'bg-red-100 text-red-700'],
         ] as $item)
-        <button type="button" data-status-card="{{ $item['ma'] }}" class="stat-card rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-yellow-300 hover:shadow-md">
-            <div class="flex items-center justify-between gap-3">
-                <div class="text-sm font-medium text-gray-500">{{ $item['ten'] }}</div>
+        <button type="button" data-status-card="{{ $item['ma'] }}" class="stat-card flex min-h-[132px] flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-yellow-300 hover:shadow-md">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-h-[44px] text-sm font-semibold leading-5 text-gray-500">{{ $item['ten'] }}</div>
                 <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $item['lop'] }}">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
             </div>
-            <div id="stat-{{ $item['ma'] }}" class="mt-3 text-2xl font-bold text-gray-900">0</div>
-            <div id="stat-{{ $item['ma'] }}-tien" class="mt-1 text-sm font-medium text-gray-500">0</div>
+            <div>
+                <div id="stat-{{ $item['ma'] }}" class="text-2xl font-bold leading-8 text-gray-900">0</div>
+                <div id="stat-{{ $item['ma'] }}-tien" class="mt-1 whitespace-nowrap text-sm font-medium text-gray-500">0</div>
+            </div>
         </button>
         @endforeach
     </div>
@@ -69,6 +74,9 @@
                 <select id="filter-trang-thai" class="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 xl:w-52">
                     <option value="">Trạng thái</option>
                     <option value="cho_xu_ly">Chờ xử lý</option>
+                    <option value="duyet_don_order">Duyệt đơn</option>
+                    <option value="bao_hang_ve_order">Báo hàng về</option>
+                    <option value="bao_hang_ve_order_mot_phan">Báo hàng về 1 phần</option>
                     <option value="xuat_kho">Xuất kho</option>
                     <option value="dong_goi">Đóng gói</option>
                     <option value="van_chuyen">Shipper đã lấy hàng</option>

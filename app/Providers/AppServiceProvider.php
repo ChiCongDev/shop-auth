@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,7 +34,11 @@ class AppServiceProvider extends ServiceProvider
         // Chia sẻ thông tin giỏ hàng với tất cả views
         view()->composer('*', function ($view) {
             $tongSoLuong = 0;
-            if (session('khach_hang_id')) {
+            if (
+                session('khach_hang_id')
+                && Schema::hasTable('gio_hangs')
+                && Schema::hasTable('gio_hang_chi_tiets')
+            ) {
                 $gioHang = \App\Models\GioHang::where('khach_hang_id', session('khach_hang_id'))->first();
                 if ($gioHang) {
                     $tongSoLuong = \App\Models\GioHangChiTiet::where('gio_hang_id', $gioHang->id)->sum('so_luong');

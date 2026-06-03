@@ -79,10 +79,7 @@ function layGiaTheoChinhSach(sp, chinhSachGia) {
 }
 
 function tinhGiaDuKien(sp) {
-    if (Number(sp.gia_order || 0) > 0) return Number(sp.gia_order);
-    const giaTheoChinhSach = layGiaTheoChinhSach(sp, layChinhSachGiaCuaKhachHang());
-    if (Number(giaTheoChinhSach || 0) > 0) return Number(giaTheoChinhSach);
-    return Number(sp.gia_ban_le || 0);
+    return Number(sp.gia_order || 0) > 0 ? Number(sp.gia_order) : 0;
 }
 
 function capNhatGiaTuDongTheoKhachHang() {
@@ -142,6 +139,29 @@ window.chonKhachHang = (id) => {
     renderNhanVienBanHang();
     capNhatGiaTuDongTheoKhachHang();
 };
+
+async function tuChonKhachMacDinhNeuCo() {
+    if (state.khachHang) return;
+
+    try {
+        const res = await fetch('/api/doi-tac/order-hang/khach-hang-mac-dinh', {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const data = await res.json();
+        const khachHang = data.success && data.auto_select ? data.data : null;
+
+        if (!res.ok || !khachHang?.id || state.khachHang) {
+            return;
+        }
+
+        state.dropdownKhach.set(Number(khachHang.id), khachHang);
+        window.chonKhachHang(khachHang.id);
+    } catch (error) {
+        console.error('Loi tu chon khach order mac dinh doi tac:', error);
+    }
+}
 
 window.xoaKhachDaChon = () => {
     state.khachHang = null;
@@ -247,6 +267,11 @@ window.chonSanPhamOrder = async (id) => {
     }
 
     const sp = data.data;
+    if (Number(sp.gia_order || 0) <= 0) {
+        showToast('error', 'Thieu gia order', 'San pham nay chua co gia order hop le');
+        return;
+    }
+
     const index = state.sanPhams.findIndex(item => Number(item.san_pham_id) === Number(id));
     if (index >= 0) {
         state.sanPhams[index].so_luong += 1;
@@ -375,8 +400,10 @@ window.taoDonOrder = async () => {
         }
 
         if (data.success) {
-            showToast('success', 'Thành công', `Đã tạo đơn ${data.data.ma_don_order}`);
-            setTimeout(() => window.location.href = '/doi-tac/order-hang/danh-sach', 800);
+            const maDonHang = data.data?.ma_don_hang || '';
+            showToast('success', 'Thành công', `Đã tạo đơn ${maDonHang || 'order'}`);
+            const query = maDonHang ? `?search=${encodeURIComponent(maDonHang)}` : '';
+            setTimeout(() => window.location.href = `/doi-tac/order-hang/danh-sach${query}`, 800);
         } else {
             showToast('error', 'Lỗi', data.message || 'Không thể tạo đơn order');
         }
@@ -397,3 +424,4 @@ document.addEventListener('click', e => {
     }
 });
 renderBang();
+tuChonKhachMacDinhNeuCo();

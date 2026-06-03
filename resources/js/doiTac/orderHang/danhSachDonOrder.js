@@ -12,6 +12,9 @@ const state = {
 
 const statusText = {
     cho_xu_ly: 'Chờ xử lý',
+    duyet_don_order: 'Duyệt đơn',
+    bao_hang_ve_order: 'Báo hàng về',
+    bao_hang_ve_order_mot_phan: 'Báo hàng về 1 phần',
     xuat_kho: 'Xuất kho',
     dong_goi: 'Đóng gói',
     van_chuyen: 'Shipper đã lấy hàng',
@@ -58,6 +61,9 @@ function showToast(title, message) {
 function badge(status) {
     const cls = {
         cho_xu_ly: 'bg-yellow-100 text-yellow-800',
+        duyet_don_order: 'bg-blue-100 text-blue-800',
+        bao_hang_ve_order: 'bg-green-100 text-green-800',
+        bao_hang_ve_order_mot_phan: 'bg-amber-100 text-amber-800',
         xuat_kho: 'bg-green-100 text-green-800',
         dong_goi: 'bg-emerald-100 text-emerald-800',
         van_chuyen: 'bg-purple-100 text-purple-800',
@@ -182,7 +188,6 @@ function renderDanhSach(items) {
     tbody.innerHTML = items.map(item => {
         const detailUrl = `/doi-tac/order-hang/don-ban/${item.id}`;
         const detailClass = 'font-bold text-blue-600 hover:underline';
-        const title = item.ma_don_order ? `Tạo từ đơn order ${escapeHtml(item.ma_don_order)}` : 'Tạo từ đơn order';
         return `<tr class="transition hover:bg-gray-50">
             <td class="px-4 py-4 text-gray-400">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +197,7 @@ function renderDanhSach(items) {
             <td class="px-4 py-4">
                 <div class="flex items-center gap-2">
                     <a href="${detailUrl}" class="${detailClass}">${escapeHtml(item.ma_don_hang)}</a>
-                    <span title="${title}" class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700">Order</span>
+                    <span title="Tạo từ order" class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700">Order</span>
                 </div>
             </td>
             <td class="px-4 py-4 text-gray-700">${formatDate(item.ngay_dat || item.created_at)}</td>
@@ -200,7 +205,7 @@ function renderDanhSach(items) {
                 <div class="font-semibold text-gray-900">${escapeHtml(item.khach_hang?.ten || 'Khách lẻ')}</div>
                 <div class="mt-1 text-xs text-gray-500">${escapeHtml(item.khach_hang?.sdt || '')}</div>
             </td>
-            <td class="px-4 py-4">${badge(item.trang_thai)}</td>
+            <td class="px-4 py-4">${badge(item.trang_thai_hien_thi || item.trang_thai)}</td>
             <td class="px-4 py-4 text-right font-bold text-gray-900">${formatCurrency(item.tien_thanh_toan)}</td>
             <td class="px-4 py-4 text-right">
                 <a href="${detailUrl}" class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Xem</a>

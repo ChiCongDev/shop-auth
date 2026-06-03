@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Hàng được phép order')
+@section('title', 'Deal Order')
 
 @section('content')
 @include('doiTac.orderHang._nav')
@@ -7,7 +7,7 @@
     <div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
             <p class="text-xs font-bold uppercase tracking-wide" style="color:#d4af37">Danh mục sản phẩm order</p>
-            <h1 class="mt-1 text-2xl font-bold text-gray-900">Hàng được phép order</h1>
+            <h1 class="mt-1 text-2xl font-bold text-gray-900">Deal Order</h1>
             <p class="mt-1 text-sm text-gray-500">Chỉ xem các sản phẩm đang được bật order. Việc bật/tắt và chỉnh giá vẫn được quản lý ở hệ thống bán hàng.</p>
         </div>
         <a href="/doi-tac/order-hang/tao" class="inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90"

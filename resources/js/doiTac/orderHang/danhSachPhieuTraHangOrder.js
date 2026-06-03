@@ -122,7 +122,7 @@ function renderRows(items) {
             </td>
             <td class="px-4 py-4">
                 <a href="/doi-tac/order-hang/don-ban/${item.don_hang_id}" class="font-semibold text-blue-600 hover:underline">${escapeHtml(item.ma_don_hang_goc || '-')}</a>
-                <div class="mt-1 text-xs text-sky-700">${escapeHtml(item.ma_don_order || 'Order')}</div>
+                <div class="mt-1 text-xs text-sky-700">Order</div>
             </td>
             <td class="px-4 py-4">
                 <div class="font-semibold text-gray-900">${escapeHtml(khach.ten || 'Khách lẻ')}</div>
@@ -195,7 +195,7 @@ async function xemChiTiet(id) {
 
 function renderModal(phieu) {
     document.getElementById('modal-return-title').textContent = phieu.ma_phieu || 'Chi tiết phiếu trả';
-    document.getElementById('modal-return-subtitle').textContent = `${phieu.ma_don_hang_goc || ''} ${phieu.ma_don_order ? `- ${phieu.ma_don_order}` : ''}`;
+    document.getElementById('modal-return-subtitle').textContent = phieu.ma_don_hang_goc || '';
     document.getElementById('modal-return-body').innerHTML = `
         <div class="grid gap-3 sm:grid-cols-3">
             <div class="rounded-lg border border-gray-200 p-4">

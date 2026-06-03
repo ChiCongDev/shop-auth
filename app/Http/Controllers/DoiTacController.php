@@ -12,7 +12,7 @@ class DoiTacController extends Controller
     public function dangNhap()
     {
         if (session('doi_tac_id')) {
-            return redirect('/doi-tac/order-hang/danh-sach');
+            return redirect('/');
         }
 
         return view('doiTac.dangNhap');
@@ -33,7 +33,7 @@ class DoiTacController extends Controller
         $thanhCong = $this->doiTacService->dangNhapTaiKhoan($request->email, $request->mat_khau);
 
         if ($thanhCong) {
-            return redirect()->intended('/doi-tac/order-hang/danh-sach')
+            return redirect('/')
             ->with('thongBao', 'Đăng nhập khu đối tác thành công.');
         }
 

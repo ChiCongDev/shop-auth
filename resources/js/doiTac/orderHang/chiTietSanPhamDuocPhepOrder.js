@@ -115,7 +115,7 @@ function renderThongTinPhienBan(item) {
     document.getElementById('pb-sku').textContent = item.ma_sku || '-';
     document.getElementById('pb-ma-vach').textContent = item.ma_vach || '-';
     document.getElementById('pb-gia-order').textContent = formatCurrency(item.gia_order);
-    document.getElementById('pb-gia-ban-le').textContent = formatCurrency(item.gia_ban_le);
+    document.getElementById('pb-gia-ban-le')?.closest('div')?.classList.add('hidden');
     document.getElementById('pb-co-the-ban').textContent = formatNumber(item.co_the_ban || 0);
     document.getElementById('pb-order-listed-at').textContent = formatDate(item.order_listed_at);
 }
@@ -127,6 +127,11 @@ function laySoLuongOrderNhanh() {
 async function themVaoGioOrder() {
     if (!phienBanDangChon) {
         showToast('Thiếu phiên bản', 'Vui lòng chọn phiên bản sản phẩm order.', 'error');
+        return;
+    }
+
+    if (Number(phienBanDangChon.gia_order || 0) <= 0) {
+        showToast('Thieu gia order', 'San pham nay chua co gia order hop le.', 'error');
         return;
     }
 
@@ -166,8 +171,9 @@ function moModalTaoOrderNhanh() {
     document.getElementById('tao-order-nhanh-san-pham').textContent = document.getElementById('ten-sp-order').textContent || '';
     document.getElementById('tao-order-nhanh-phien-ban').textContent = phienBanDangChon.ten || phienBanDangChon.ma_sku || '-';
     document.getElementById('tao-order-nhanh-so-luong').textContent = formatNumber(soLuong);
-    document.getElementById('tao-order-nhanh-gia').textContent = formatCurrency(phienBanDangChon.gia_order || phienBanDangChon.gia_ban_le);
+    document.getElementById('tao-order-nhanh-gia').textContent = formatCurrency(phienBanDangChon.gia_order);
     document.getElementById('modal-tao-order-nhanh').classList.remove('hidden');
+    tuChonKhachMacDinhTaoNhanhNeuCo();
 }
 
 function dongModalTaoOrderNhanh() {
@@ -212,6 +218,29 @@ window.chonKhachHangTaoNhanh = (id) => {
     document.getElementById('input-tim-khach-tao-nhanh').value = '';
     renderNhanVienBanHangTaoNhanh();
 };
+
+async function tuChonKhachMacDinhTaoNhanhNeuCo() {
+    if (stateTaoNhanh.khachHang) return;
+
+    try {
+        const res = await fetch('/api/doi-tac/order-hang/khach-hang-mac-dinh', {
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+        const data = await res.json();
+        const khachHang = data.success && data.auto_select ? data.data : null;
+
+        if (!res.ok || !khachHang?.id || stateTaoNhanh.khachHang) {
+            return;
+        }
+
+        stateTaoNhanh.dropdownKhach.set(Number(khachHang.id), khachHang);
+        window.chonKhachHangTaoNhanh(khachHang.id);
+    } catch (error) {
+        console.error('Loi tu chon khach order mac dinh tao nhanh doi tac:', error);
+    }
+}
 
 function xoaKhachTaoNhanh() {
     stateTaoNhanh.khachHang = null;
@@ -272,6 +301,11 @@ async function taoDonOrderNhanh() {
         return;
     }
 
+    if (Number(phienBanDangChon.gia_order || 0) <= 0) {
+        showToast('Thieu gia order', 'San pham nay chua co gia order hop le.', 'error');
+        return;
+    }
+
     const btn = document.getElementById('btn-xac-nhan-tao-order-nhanh');
     btn.disabled = true;
     btn.textContent = 'Đang tạo...';
@@ -293,7 +327,7 @@ async function taoDonOrderNhanh() {
                     san_phams: [{
                         san_pham_id: phienBanDangChon.id,
                         so_luong: laySoLuongOrderNhanh(),
-                        gia_ban_du_kien: Number(phienBanDangChon.gia_order || phienBanDangChon.gia_ban_le || 0),
+                        gia_ban_du_kien: Number(phienBanDangChon.gia_order || 0),
                         nguon_hang: 'doi_nhap',
                     }],
                 }),
@@ -313,7 +347,10 @@ async function taoDonOrderNhanh() {
         }
 
         dongModalTaoOrderNhanh();
-        showToast('Thành công', `Đã tạo đơn ${data.data?.ma_don_order || 'order'}.`);
+        const maDonHang = data.data?.ma_don_hang || '';
+        showToast('Thành công', `Đã tạo đơn ${maDonHang || 'order'}.`);
+        const query = maDonHang ? `?search=${encodeURIComponent(maDonHang)}` : '';
+        setTimeout(() => window.location.href = `/doi-tac/order-hang/danh-sach${query}`, 800);
     } finally {
         btn.disabled = false;
         btn.textContent = 'Xác nhận tạo đơn order';
@@ -353,7 +390,7 @@ function renderSanPhamLienQuan(items) {
             <div class="p-3">
                 ${item.nhan_hieu ? `<div class="mb-1 truncate text-xs font-bold" style="color:#d4af37">${escapeHtml(item.nhan_hieu)}</div>` : ''}
                 <h3 class="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-gray-900">${escapeHtml(item.ten_chung || 'Sản phẩm')}</h3>
-                <div class="font-bold text-sm" style="color:#1a1a2e">${formatCurrency(item.gia_order || item.gia_ban_le)}</div>
+                <div class="font-bold text-sm" style="color:#1a1a2e">${formatCurrency(item.gia_order)}</div>
                 <div class="mt-2 text-xs text-gray-500">${formatNumber(item.so_phien_ban || 0)} phiên bản được order</div>
             </div>
         </a>
@@ -366,7 +403,7 @@ function renderChiTiet(data) {
     document.getElementById('breadcrumb-ten-sp').textContent = data.ten_chung || 'Chi tiết sản phẩm';
     document.getElementById('ten-sp-order').textContent = data.ten_chung || 'Sản phẩm';
     document.getElementById('nhan-hieu-sp-order').textContent = data.nhan_hieu || 'Sản phẩm order';
-    document.getElementById('gia-sp-order').textContent = giaRange(data.gia_order_thap || data.gia_ban_le_thap, data.gia_order_cao || data.gia_ban_le_cao);
+    document.getElementById('gia-sp-order').textContent = giaRange(data.gia_order_thap, data.gia_order_cao);
     document.getElementById('tong-phien-ban-order').textContent = formatNumber(data.so_phien_ban || 0);
     document.getElementById('tong-ton-order').textContent = formatNumber(data.tong_ton_kho || 0);
 

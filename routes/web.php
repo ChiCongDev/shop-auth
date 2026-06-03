@@ -86,6 +86,7 @@ if (config('services.doi_tac_order.enabled', false)) {
     });
 
     Route::prefix('api/doi-tac/order-hang')->middleware('kiemTraDoiTac')->group(function () {
+        Route::get('/khach-hang-mac-dinh', [DoiTacOrderHangController::class, 'apiKhachHangMacDinh']);
         Route::get('/tim-khach-hang', [DoiTacOrderHangController::class, 'apiTimKiemKhachHang']);
         Route::get('/tim-san-pham-order', [DoiTacOrderHangController::class, 'apiTimKiemSanPhamOrder']);
         Route::get('/san-pham-duoc-phep', [DoiTacOrderHangController::class, 'apiDanhSachSanPhamDuocPhep']);
@@ -101,6 +102,7 @@ if (config('services.doi_tac_order.enabled', false)) {
         Route::get('/danh-sach', [DoiTacOrderHangController::class, 'apiLayDanhSach']);
         Route::get('/danh-sach-don-order', [DoiTacOrderHangController::class, 'apiLayDanhSachDonBanTuOrder']);
         Route::get('/don-ban/{id}', [DoiTacOrderHangController::class, 'apiLayChiTietDonBanTuOrder'])->where('id', '[0-9]+');
+        Route::get('/don-ban/{id}/lay-hang-trong-kho', [DoiTacOrderHangController::class, 'apiKiemTraLayHangTrongKho'])->where('id', '[0-9]+');
         Route::get('/phieu-tra-hang/danh-sach', [DoiTacOrderHangController::class, 'apiLayDanhSachPhieuTraHang']);
         Route::get('/phieu-tra-hang/so-luong-da-tra/{donHangId}', [DoiTacOrderHangController::class, 'apiLaySoLuongDaTra'])
             ->where('donHangId', '[0-9]+');
@@ -111,7 +113,7 @@ if (config('services.doi_tac_order.enabled', false)) {
             ->where('id', '[0-9]+');
         Route::post('/don-ban/{id}/{hanhDong}', [DoiTacOrderHangController::class, 'apiThaoTacDonBanTuOrder'])
             ->where('id', '[0-9]+')
-            ->whereIn('hanhDong', ['duyet', 'bao-hang-ve', 'xuat-kho', 'dong-goi', 'van-chuyen', 'tu-van-chuyen-ntq', 'hoan-thanh']);
+            ->whereIn('hanhDong', ['duyet', 'bao-hang-ve', 'lay-hang-trong-kho', 'xuat-kho', 'dong-goi', 'van-chuyen', 'tu-van-chuyen-ntq', 'hoan-thanh']);
         Route::get('/hang-order-ve', [DoiTacOrderHangController::class, 'apiLayHangOrderVe']);
         Route::get('/thong-ke-trang-thai', [DoiTacOrderHangController::class, 'apiThongKeTrangThai']);
         Route::post('/chi-tiet/{id}/huy', [DoiTacOrderHangController::class, 'apiHuyChiTietDonOrder'])->where('id', '[0-9]+');

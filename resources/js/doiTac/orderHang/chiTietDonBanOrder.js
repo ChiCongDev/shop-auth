@@ -3,7 +3,6 @@ const messageBox = document.getElementById('don-ban-message');
 
 const noiDungXacNhan = {
     'duyet': 'Xác nhận duyệt đơn order này?',
-    'bao-hang-ve': 'Xác nhận báo hàng về cho đơn order này?',
     'xuat-kho': 'Xác nhận xuất kho đơn hàng này?',
     'dong-goi': 'Xác nhận bắt đầu đóng gói đơn hàng?',
     'van-chuyen': 'Xác nhận shipper đã lấy hàng?',
@@ -25,17 +24,26 @@ function hienThongBao(message, type = 'info') {
     messageBox.classList.remove('hidden');
 }
 
+function formatNumber(value) {
+    return new Intl.NumberFormat('vi-VN').format(Number(value || 0));
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
 function hienThiNutTheoTrangThai() {
     if (!root) return;
 
     const trangThai = root.dataset.trangThai || '';
     const daDuyetOrder = root.dataset.daDuyetOrder === '1';
-    const daBaoHangVeOrder = root.dataset.daBaoHangVeOrder === '1';
+    const trangThaiHangOrder = root.dataset.trangThaiHangOrder || 'chua_ve';
     const cachThucNhanHang = root.dataset.cachThucNhanHang || '';
     const quyen = root.dataset.doiTacQuyen || '';
     const actions = [];
-    const coQuyenDuyet = ['admin', 'quan_ly_order'].includes(quyen);
-    const coQuyenBaoHangVe = ['admin', 'thu_kho', 'quan_ly_order'].includes(quyen);
+    const coQuyenDuyet = ['admin', 'thu_kho', 'quan_ly_order'].includes(quyen);
     const coQuyenXuatKho = ['admin', 'thu_kho', 'quan_ly_order'].includes(quyen);
     const coQuyenXuLySauXuatKho = [
         'admin',
@@ -47,9 +55,9 @@ function hienThiNutTheoTrangThai() {
 
     if (trangThai === 'cho_xu_ly' && !daDuyetOrder && coQuyenDuyet) {
         actions.push('duyet');
-    } else if (trangThai === 'cho_xu_ly' && daDuyetOrder && !daBaoHangVeOrder && coQuyenBaoHangVe) {
-        actions.push('bao-hang-ve');
-    } else if (trangThai === 'cho_xu_ly' && daBaoHangVeOrder && coQuyenXuatKho) {
+    } else if (trangThai === 'cho_xu_ly' && daDuyetOrder && trangThaiHangOrder !== 've_du' && coQuyenXuatKho) {
+        actions.push('lay-hang-trong-kho');
+    } else if (trangThai === 'cho_xu_ly' && trangThaiHangOrder === 've_du' && coQuyenXuatKho) {
         actions.push('xuat-kho');
     } else if (trangThai === 'xuat_kho' && coQuyenXuLySauXuatKho) {
         actions.push('dong-goi');
@@ -75,8 +83,167 @@ function hienThiNutTheoTrangThai() {
     }
 }
 
+function dongModalLayHangTrongKho() {
+    document.getElementById('modal-lay-hang-trong-kho-doi-tac')?.remove();
+}
+
+function renderModalLayHangTrongKho(items) {
+    dongModalLayHangTrongKho();
+
+    const modal = document.createElement('div');
+    modal.id = 'modal-lay-hang-trong-kho-doi-tac';
+    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-gray-950/50 p-4';
+
+    const rows = items.map((item, index) => {
+        const max = Number(item.co_the_lay || 0);
+        const disabled = max <= 0;
+
+        return `
+            <label class="flex gap-3 rounded-lg border border-gray-200 bg-white p-4 ${disabled ? 'opacity-60' : ''}">
+                <input type="checkbox" class="mt-1 h-4 w-4 rounded border-gray-300 text-teal-600" data-lay-hang-check data-index="${index}" ${disabled ? 'disabled' : 'checked'}>
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-950">${escapeHtml(item.ten || 'San pham')}</p>
+                    <p class="mt-1 text-xs text-gray-500">${escapeHtml(item.ma_sku || '-')}</p>
+                    <div class="mt-2 grid gap-2 text-xs text-gray-600 sm:grid-cols-3">
+                        <span>Con thieu: <b>${formatNumber(item.so_luong_con_thieu)}</b></span>
+                        <span>Co the ban: <b>${formatNumber(item.co_the_ban)}</b></span>
+                        <span>Co the lay: <b>${formatNumber(max)}</b></span>
+                    </div>
+                </div>
+                <input type="number" min="1" max="${max}" value="${max > 0 ? max : 1}" data-lay-hang-qty data-index="${index}" ${disabled ? 'disabled' : ''} class="h-10 w-24 rounded-lg border border-gray-300 px-3 text-center text-sm font-semibold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+            </label>
+        `;
+    }).join('');
+
+    modal.innerHTML = `
+        <div class="w-full max-w-3xl rounded-xl bg-white shadow-2xl">
+            <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-950">Lay hang trong kho</h3>
+                    <p class="mt-1 text-sm text-gray-500">Chon san pham va so luong muon lay de bao hang order ve.</p>
+                </div>
+                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">Dong</button>
+            </div>
+            <div class="max-h-[60vh] space-y-3 overflow-y-auto bg-gray-50 px-5 py-4">
+                ${rows || '<div class="rounded-lg border border-gray-200 bg-white p-5 text-center text-sm font-semibold text-gray-500">Khong co san pham nao co the lay trong kho.</div>'}
+            </div>
+            <div class="flex flex-col gap-2 border-t border-gray-100 px-5 py-4 sm:flex-row sm:justify-end">
+                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Huy</button>
+                <button type="button" data-submit-lay-hang class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Xac nhan lay hang</button>
+            </div>
+        </div>
+    `;
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal || event.target.closest('[data-close-modal]')) {
+            dongModalLayHangTrongKho();
+        }
+    });
+
+    modal.querySelector('[data-submit-lay-hang]')?.addEventListener('click', () => guiLayHangTrongKho(items));
+    document.body.appendChild(modal);
+}
+
+async function moModalLayHangTrongKho(button) {
+    if (!root) return;
+
+    const donHangId = root.dataset.donHangId;
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Dang kiem tra...';
+
+    try {
+        const response = await fetch(`/api/doi-tac/order-hang/don-ban/${donHangId}/lay-hang-trong-kho`, {
+            headers: { Accept: 'application/json' },
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            hienThongBao(data.message || 'Khong kiem tra duoc hang trong kho.', 'error');
+            return;
+        }
+
+        const items = data.data?.items || [];
+        if (!items.length) {
+            hienThongBao('Khong co san pham nao con thieu co the lay trong kho.', 'info');
+            return;
+        }
+
+        renderModalLayHangTrongKho(items);
+    } catch (error) {
+        hienThongBao('Khong ket noi duoc may chu kiem tra hang trong kho.', 'error');
+    } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+async function guiLayHangTrongKho(items) {
+    const modal = document.getElementById('modal-lay-hang-trong-kho-doi-tac');
+    if (!modal || !root) return;
+
+    const sanPhams = Array.from(modal.querySelectorAll('[data-lay-hang-check]:checked')).map((checkbox) => {
+        const index = Number(checkbox.dataset.index);
+        const item = items[index];
+        const qtyInput = modal.querySelector(`[data-lay-hang-qty][data-index="${index}"]`);
+        const soLuong = Math.max(1, Number(qtyInput?.value || 0));
+        const max = Number(item.co_the_lay || 0);
+
+        return {
+            san_pham_id: Number(item.san_pham_id),
+            so_luong: Math.min(soLuong, max),
+        };
+    }).filter(item => item.san_pham_id > 0 && item.so_luong > 0);
+
+    if (!sanPhams.length) {
+        hienThongBao('Vui long chon it nhat mot san pham co the lay trong kho.', 'error');
+        return;
+    }
+
+    const submitButton = modal.querySelector('[data-submit-lay-hang]');
+    const originalText = submitButton?.textContent || '';
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Dang xu ly...';
+    }
+
+    try {
+        const response = await fetch(`/api/doi-tac/order-hang/don-ban/${root.dataset.donHangId}/lay-hang-trong-kho`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: JSON.stringify({ san_phams: sanPhams }),
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            hienThongBao(data.message || 'Khong the lay hang trong kho.', 'error');
+            return;
+        }
+
+        hienThongBao(data.message || 'Da lay hang trong kho.', 'success');
+        dongModalLayHangTrongKho();
+        window.setTimeout(() => window.location.reload(), 800);
+    } catch (error) {
+        hienThongBao('Khong ket noi duoc may chu xu ly lay hang trong kho.', 'error');
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+        }
+    }
+}
+
 async function guiThaoTac(action, button) {
     if (!root) return;
+
+    if (action === 'lay-hang-trong-kho') {
+        await moModalLayHangTrongKho(button);
+        return;
+    }
 
     const donHangId = root.dataset.donHangId;
     const ok = window.confirm(noiDungXacNhan[action] || 'Xác nhận thao tác đơn hàng?');

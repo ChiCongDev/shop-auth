@@ -160,7 +160,7 @@ function renderDanhSach(items) {
         const url = `/doi-tac/order-hang/chi-tiet/${item.id}`;
         return `<tr class="bg-white transition hover:bg-gray-50">
             <td class="px-5 py-3">
-                <a class="font-medium text-blue-600 hover:text-blue-800 hover:underline" href="${url}">${escapeHtml(item.ma_don_order || '-')}</a>
+                <a class="font-medium text-blue-600 hover:text-blue-800 hover:underline" href="${url}">Order</a>
             </td>
             <td class="px-4 py-3">
                 <div class="font-medium text-gray-900">${escapeHtml(item.khach_hang?.ten || '-')}</div>

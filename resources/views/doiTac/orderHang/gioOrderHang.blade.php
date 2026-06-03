@@ -13,7 +13,7 @@
             <p class="mt-1 text-sm text-gray-500">Danh sách sản phẩm order đã lưu theo tài khoản đối tác đang đăng nhập.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Hàng được phép order</a>
+            <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Deal Order</a>
             <button id="btn-xoa-gio-order" type="button" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-100">Xóa giỏ</button>
         </div>
     </div>

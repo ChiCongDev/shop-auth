@@ -112,7 +112,7 @@ function renderOrder(don) {
     const tongDaVe = chiTiets.reduce((sum, ct) => sum + Number(ct.so_luong_da_ve || 0), 0);
     const tongGiaTri = chiTiets.reduce((sum, ct) => sum + Number(ct.so_luong || 0) * Number(ct.gia_ban_du_kien || 0), 0);
 
-    document.getElementById('order-title').textContent = don.ma_don_order || 'Chi tiết đơn order';
+    document.getElementById('order-title').textContent = 'Chi tiết order';
     document.getElementById('order-subtitle').textContent = `Tạo lúc ${formatDate(don.created_at)} - ${chiTiets.length} dòng sản phẩm`;
     document.getElementById('order-status-slot').innerHTML = badge(don.trang_thai);
     document.getElementById('product-summary').textContent = `Tổng SL ${tongSoLuong} - Đã về ${tongDaVe}`;

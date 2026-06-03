@@ -10,6 +10,7 @@ class DoiTacDonBanNoiBoService
     private array $hanhDongDuocPhep = [
         'duyet',
         'bao-hang-ve',
+        'lay-hang-trong-kho',
         'xuat-kho',
         'dong-goi',
         'van-chuyen',
@@ -34,6 +35,18 @@ class DoiTacDonBanNoiBoService
             'don_hang_id' => $donHangId,
             'nhan_vien_id' => $nhanVienId,
             'hanh_dong' => $hanhDong,
+        ]);
+    }
+
+    public function kiemTraLayHangTrongKho(int $donHangId, int $nhanVienId): array
+    {
+        return $this->guiGet('/api/noi-bo/don-order/' . $donHangId . '/lay-hang-trong-kho', [
+            'nhan_vien_id' => $nhanVienId,
+            'nguon' => 'shop_auth_doi_tac',
+        ], [
+            'don_hang_id' => $donHangId,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'kiem_tra_lay_hang_trong_kho',
         ]);
     }
 
@@ -137,6 +150,63 @@ class DoiTacDonBanNoiBoService
             return [
                 'success' => false,
                 'message' => 'Không kết nối được API nội bộ sell.',
+                'status' => 503,
+            ];
+        }
+    }
+
+    private function guiGet(string $path, array $query = [], array $logContext = []): array
+    {
+        if (!config('services.sell_internal.enabled', false)) {
+            return [
+                'success' => false,
+                'message' => 'Ket noi API noi bo sell dang tat.',
+                'status' => 503,
+            ];
+        }
+
+        $baseUrl = rtrim((string) config('services.sell_internal.url'), '/');
+        $token = (string) config('services.sell_internal.token');
+
+        if ($baseUrl === '' || $token === '') {
+            return [
+                'success' => false,
+                'message' => 'ChÆ°a cáº¥u hÃ¬nh káº¿t ná»‘i API ná»™i bá»™ vá»›i há»‡ thá»‘ng sell.',
+                'status' => 503,
+            ];
+        }
+
+        try {
+            $response = Http::acceptJson()
+                ->timeout((int) config('services.sell_internal.timeout', 10))
+                ->withToken($token)
+                ->get($baseUrl . $path, $query);
+
+            $data = $response->json();
+
+            if (!is_array($data)) {
+                return [
+                    'success' => false,
+                    'message' => 'API ná»™i bá»™ sell tráº£ vá» dá»¯ liá»‡u khÃ´ng há»£p lá»‡.',
+                    'status' => $response->status(),
+                ];
+            }
+
+            return [
+                'success' => (bool) ($data['success'] ?? $data['thanh_cong'] ?? $response->successful()),
+                'message' => (string) ($data['message'] ?? $data['thong_bao'] ?? 'ÄÃ£ gá»­i thao tÃ¡c sang há»‡ thá»‘ng sell.'),
+                'data' => $data['data'] ?? $data['du_lieu'] ?? null,
+                'status' => $response->status(),
+                'raw' => $data,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Lá»—i gá»i API ná»™i bá»™ sell tá»« khu Ä‘á»‘i tÃ¡c: ' . $e->getMessage(), array_merge($logContext, [
+                'path' => $path,
+            ]));
+
+            return [
+                'success' => false,
+                'message' => 'KhÃ´ng káº¿t ná»‘i Ä‘Æ°á»£c API ná»™i bá»™ sell.',
                 'status' => 503,
             ];
         }

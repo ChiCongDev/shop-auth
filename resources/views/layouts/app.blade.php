@@ -39,7 +39,7 @@
     {{-- ══ HEADER ══ --}}
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex items-center justify-between h-14 sm:h-16">
+            <div class="flex items-center justify-between gap-3 h-14 sm:h-16">
 
                 {{-- Logo --}}
                 <a href="/" class="flex items-center gap-2 shrink-0 touch-min">
@@ -47,26 +47,31 @@
                          style="background: linear-gradient(135deg, #1a1a2e, #d4af37)">
                         <span class="text-white font-bold text-sm">SA</span>
                     </div>
-                    <span class="font-bold text-lg sm:text-xl text-gray-900">Shop <span style="color:#d4af37">Auth</span></span>
+                    <span class="whitespace-nowrap font-bold text-lg sm:text-xl text-gray-900">Shop <span style="color:#d4af37">Auth</span></span>
                 </a>
 
                 {{-- Nav desktop --}}
-                <nav class="hidden md:flex items-center gap-6">
-                    <a href="/" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Trang chủ</a>
-                    <a href="/san-pham" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Sản phẩm</a>
-                    <a href="/san-pham?loai=quan-ao" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Quần áo</a>
-                    <a href="/san-pham?loai=giay-dep" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Giày dép</a>
+                <nav class="hidden shrink-0 items-center gap-3 text-sm lg:flex xl:gap-5">
+                    <a href="/" class="whitespace-nowrap text-gray-600 hover:text-gray-900 font-medium transition-colors">Trang chủ</a>
+                    <a href="/san-pham" class="whitespace-nowrap text-gray-600 hover:text-gray-900 font-medium transition-colors">Sản phẩm</a>
+                    <a href="/san-pham?loai=quan-ao" class="hidden whitespace-nowrap text-gray-600 hover:text-gray-900 font-medium transition-colors xl:inline-flex">Quần áo</a>
+                    <a href="/san-pham?loai=giay-dep" class="hidden whitespace-nowrap text-gray-600 hover:text-gray-900 font-medium transition-colors xl:inline-flex">Giày dép</a>
                     <a href="/hang-moi-ve"
-                       class="relative inline-flex items-center gap-1.5 font-semibold transition-colors"
+                       class="relative inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors"
                        style="color: #ff4d4f">
                         🆕 Hàng mới về
                         <span class="absolute -top-2 -right-5 px-1.5 py-0.5 rounded-full text-white font-bold leading-none"
                               style="font-size:9px; background:#ff4d4f">NEW</span>
                     </a>
                     @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
-                    <div class="group relative">
+                    <a href="/doi-tac/order-hang/san-pham-duoc-phep"
+                       class="whitespace-nowrap font-semibold transition-colors"
+                       style="color:#d4af37">
+                        Deal Order
+                    </a>
+                    <div class="group relative shrink-0">
                         <a href="/doi-tac/order-hang/danh-sach"
-                           class="inline-flex items-center gap-1.5 font-semibold transition-colors"
+                           class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors"
                            style="color:#d4af37">
                             Quản lý hàng order
                             <svg class="h-4 w-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,20 +82,17 @@
                             <a href="/doi-tac/order-hang/tao" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Tạo đơn order</a>
                             <a href="/doi-tac/order-hang/danh-sach" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách đơn order</a>
                             <a href="/doi-tac/order-hang/danh-sach-khach-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách khách hàng</a>
-                            <div class="my-1 border-t border-gray-100"></div>
-                            <a href="/doi-tac/order-hang/hang-order-ve" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Hàng order về</a>
                             @if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'quan_ly_order'], true))
+                                <div class="my-1 border-t border-gray-100"></div>
                                 <a href="/doi-tac/order-hang/khach-tra-hang-order" class="block rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Khách trả hàng order</a>
                             @endif
-                            <div class="my-1 border-t border-gray-100"></div>
-                            <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Hàng được phép order</a>
                         </div>
                     </div>
                     @endif
                 </nav>
 
                 {{-- Icons bên phải --}}
-                <div class="flex items-center gap-1">
+                <div class="flex shrink-0 items-center gap-1">
 
                     {{-- Search mobile toggle --}}
                     <button id="btn-search-mobile"
@@ -110,7 +112,7 @@
                                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <input id="input-tim-kiem" type="text" placeholder="Tìm sản phẩm..." autocomplete="off"
-                                   class="bg-transparent text-sm outline-none w-44 text-gray-700 placeholder-gray-400">
+                                   class="bg-transparent text-sm outline-none w-28 text-gray-700 placeholder-gray-400 lg:w-36 xl:w-44">
                         </div>
                         <div id="dropdown-goi-y"
                              class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl
@@ -125,6 +127,19 @@
                     </div>
 
                     {{-- Giỏ hàng --}}
+                    {{-- Gio hang order --}}
+                    @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
+                    <a href="/doi-tac/order-hang/gio-order"
+                       class="relative touch-min w-11 justify-center text-gray-600 hover:text-gray-900 transition-colors"
+                       title="Giỏ hàng order"
+                       aria-label="Giỏ hàng order">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 3h2l.4 2M7 13h8.5a2 2 0 001.8-1.1L21 5H5.4M7 13L5.4 5M7 13l-1.8 1.8A1 1 0 006 16.5h11M9 20a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+                        </svg>
+                    </a>
+                    @endif
+
                     @if(session('khach_hang_id'))
                     <a href="/gio-hang"
                        class="relative touch-min w-11 justify-center text-gray-600 hover:text-gray-900 transition-colors">
@@ -150,7 +165,7 @@
                                  style="background:#1a1a2e">
                                 {{ mb_substr(session('tenDangNhap', 'K'), 0, 1) }}
                             </div>
-                            <span class="hidden md:block text-sm font-medium">{{ session('tenDangNhap') }}</span>
+                            <span class="hidden max-w-24 truncate text-sm font-medium md:block xl:max-w-32">{{ session('tenDangNhap') }}</span>
                         </button>
                         <div id="dropdown-tai-khoan"
                              class="hidden absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg py-1 z-50 border border-gray-100">
@@ -186,7 +201,7 @@
                                  style="background:#d4af37">
                                 {{ mb_substr(session('doi_tac_ten', 'D'), 0, 1) }}
                             </div>
-                            <span class="hidden md:block text-sm font-medium">{{ session('doi_tac_ten') }}</span>
+                            <span class="hidden max-w-24 truncate text-sm font-medium md:block xl:max-w-32">{{ session('doi_tac_ten') }}</span>
                         </button>
                         <div id="dropdown-doi-tac"
                              class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg py-1 z-50 border border-gray-100">

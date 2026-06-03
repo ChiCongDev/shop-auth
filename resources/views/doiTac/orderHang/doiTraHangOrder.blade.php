@@ -28,7 +28,7 @@
                     <h1 class="mt-3 text-2xl font-bold text-gray-950">Đổi/trả hàng order</h1>
                     <p class="mt-2 text-sm text-gray-500">
                         Đơn bán <span class="font-semibold text-gray-900">{{ $don_hang->ma_don_hang }}</span>
-                        từ đơn order <span class="font-semibold text-gray-900">{{ $don_order->ma_don_order }}</span>
+                        được tạo từ order
                     </p>
                 </div>
                 <a href="/doi-tac/order-hang/khach-tra-hang-order" class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">

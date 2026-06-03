@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+////// doitac
 class DoiTacOrderHangController extends Controller
 {
     public function __construct(
@@ -130,6 +131,42 @@ class DoiTacOrderHangController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Lỗi tìm khách order đối tác: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function apiKhachHangMacDinh()
+    {
+        try {
+            if (!in_array(session('doi_tac_quyen'), ['nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'], true)) {
+                return response()->json([
+                    'success' => true,
+                    'data' => null,
+                    'auto_select' => false,
+                ]);
+            }
+
+            $nhanVienId = (int) session('doi_tac_id');
+            $khachHangs = KhachHang::select('id', 'ten', 'sdt', 'ma_khach_hang', 'email', 'nhom_khach_hang_id')
+                ->with([
+                    'nhomKhachHang:id,ten,chinh_sach_gia_id',
+                    'nhomKhachHang.chinhSachGia:id,loai_gia,code',
+                    'nhanViens:id,ten,quyen',
+                ])
+                ->whereHas('nhanViens', function ($q) use ($nhanVienId) {
+                    $q->where('nhan_viens.id', $nhanVienId);
+                })
+                ->orderBy('ten')
+                ->limit(2)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $khachHangs->count() === 1 ? $khachHangs->first() : null,
+                'auto_select' => $khachHangs->count() === 1,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Loi lay khach order mac dinh doi tac: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -412,12 +449,14 @@ class DoiTacOrderHangController extends Controller
                 return response()->json(['success' => false, 'message' => $loiNhanVienPhuTrach], 422);
             }
 
+            $sanPhams = $this->apDungGiaDuKienHeThong($request->input('san_phams'), (int) $request->khach_hang_id);
+
             $payload = [
                 'khach_hang_id' => (int) $request->khach_hang_id,
                 'nhan_vien_ban_hang_id' => $request->input('nhan_vien_ban_hang_id'),
                 'ghi_chu' => $request->input('ghi_chu'),
                 'xac_nhan_ton_kho' => $request->boolean('xac_nhan_ton_kho'),
-                'san_phams' => $this->apDungGiaDuKienHeThong($request->input('san_phams'), (int) $request->khach_hang_id),
+                'san_phams' => $sanPhams,
             ];
 
             $ketQua = $this->donBanNoiBoService->guiTaoDonOrder($nhanVienId, $payload);
@@ -662,6 +701,7 @@ class DoiTacOrderHangController extends Controller
     {
         try {
             $boLoc = [
+                'page' => $request->input('page', 1),
                 'per_page' => $request->input('per_page', 15),
                 'search' => trim($request->input('search', '')),
                 'ngay_tao' => $request->input('ngay_tao', ''),
@@ -834,6 +874,31 @@ class DoiTacOrderHangController extends Controller
         ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
     }
 
+    public function apiKiemTraLayHangTrongKho(int $id)
+    {
+        if (!$this->coQuyenThaoTacDonBan('lay-hang-trong-kho')) {
+            return response()->json(['success' => false, 'message' => 'Ban khong co quyen lay hang trong kho.'], 403);
+        }
+
+        $nhanVienId = (int) session('doi_tac_id');
+        $duLieu = $this->orderHangService->layChiTietDonBanTuOrder($id, $nhanVienId, session('doi_tac_quyen'));
+
+        if (!$duLieu) {
+            return response()->json([
+                'success' => false,
+                'message' => 'KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng hoáº·c báº¡n khÃ´ng cÃ³ quyá»n thao tÃ¡c Ä‘Æ¡n nÃ y.',
+            ], 404);
+        }
+
+        $ketQua = $this->donBanNoiBoService->kiemTraLayHangTrongKho($id, $nhanVienId);
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
     public function apiLayHangOrderVe(Request $request)
     {
         try {
@@ -978,8 +1043,9 @@ class DoiTacOrderHangController extends Controller
     {
         $quyen = session('doi_tac_quyen');
         $quyenTheoHanhDong = [
-            'duyet' => ['admin', 'quan_ly_order'],
+            'duyet' => ['admin', 'thu_kho', 'quan_ly_order'],
             'bao-hang-ve' => ['admin', 'thu_kho', 'quan_ly_order'],
+            'lay-hang-trong-kho' => ['admin', 'thu_kho', 'quan_ly_order'],
             'xuat-kho' => ['admin', 'thu_kho', 'quan_ly_order'],
             'dong-goi' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
             'van-chuyen' => ['admin', 'thu_kho', 'quan_ly_order', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
@@ -1133,46 +1199,27 @@ class DoiTacOrderHangController extends Controller
 
     private function apDungGiaDuKienHeThong(array $sanPhams, int $khachHangId): array
     {
-        $khachHang = KhachHang::with(['nhomKhachHang.chinhSachGia:id,code'])->find($khachHangId);
         $sanPhamIds = collect($sanPhams)->pluck('san_pham_id')->unique()->values();
-        $sanPhamTheoId = SanPham::with(['sanPhamGias:id,san_pham_id,chinh_sach_gia_id,gia'])
+        $sanPhamTheoId = SanPham::select('id', 'ten', 'ma_sku', 'gia_order')
             ->whereIn('id', $sanPhamIds)
             ->get()
             ->keyBy('id');
 
-        return collect($sanPhams)->map(function ($item) use ($sanPhamTheoId, $khachHang) {
+        return collect($sanPhams)->map(function ($item) use ($sanPhamTheoId) {
             $sanPham = $sanPhamTheoId->get($item['san_pham_id']);
             if ($sanPham) {
-                $item['gia_ban_du_kien'] = $this->tinhGiaDuKienChoSanPham($sanPham, $khachHang);
+                $giaOrder = (float) $sanPham->gia_order;
+                if ($giaOrder <= 0) {
+                    $tenSanPham = $sanPham->ma_sku ?: $sanPham->ten ?: ('ID ' . $sanPham->id);
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'san_phams' => ["San pham {$tenSanPham} chua co gia order hop le."],
+                    ]);
+                }
+
+                $item['gia_ban_du_kien'] = $giaOrder;
             }
             return $item;
         })->all();
     }
 
-    private function tinhGiaDuKienChoSanPham(SanPham $sanPham, ?KhachHang $khachHang): float
-    {
-        if ((float) $sanPham->gia_order > 0) {
-            return (float) $sanPham->gia_order;
-        }
-
-        $chinhSachGia = $khachHang?->nhomKhachHang?->chinhSachGia;
-        if ($chinhSachGia) {
-            $giaCustom = $sanPham->sanPhamGias
-                ->firstWhere('chinh_sach_gia_id', $chinhSachGia->id);
-
-            if ($giaCustom && (float) $giaCustom->gia > 0) {
-                return (float) $giaCustom->gia;
-            }
-
-            $code = $chinhSachGia->code;
-            if (in_array($code, ['gia_ban_le', 'gia_ban_buon', 'gia_cong_tac_vien', 'gia_order'], true)) {
-                $giaTheoCode = (float) ($sanPham->{$code} ?? 0);
-                if ($giaTheoCode > 0) {
-                    return $giaTheoCode;
-                }
-            }
-        }
-
-        return (float) ($sanPham->gia_ban_le ?? 0);
-    }
 }

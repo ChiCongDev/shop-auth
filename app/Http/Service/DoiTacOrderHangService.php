@@ -7,6 +7,7 @@ use App\Models\ChiTietDonOrderHang;
 use App\Models\DonHang;
 use App\Models\DonOrderHang;
 use App\Models\KhachHang;
+use App\Models\LichSuDonHang;
 use App\Models\LichSuDonOrderHang;
 use App\Models\SanPham;
 use Illuminate\Support\Facades\DB;
@@ -149,6 +150,12 @@ class DoiTacOrderHangService
     public function layDanhSachDonBanTuOrder(array $boLoc, int $nhanVienId, ?string $quyen = null)
     {
         $query = $this->taoQueryDonBanTuOrder($nhanVienId, $quyen);
+        $trangThaiHienThiOrder = [
+            'duyet_don_order',
+            'bao_hang_ve_order',
+            'bao_hang_ve_order_mot_phan',
+        ];
+        $locTheoTrangThaiHienThi = in_array($boLoc['trang_thai'] ?? '', $trangThaiHienThiOrder, true);
 
         $search = trim($boLoc['search'] ?? '');
         if ($search !== '') {
@@ -158,17 +165,11 @@ class DoiTacOrderHangService
                         $khachHang->where('ten', 'like', '%' . $search . '%')
                             ->orWhere('sdt', 'like', '%' . $search . '%')
                             ->orWhere('ma_khach_hang', 'like', '%' . $search . '%');
-                    })
-                    ->orWhereExists(function ($donOrder) use ($search) {
-                        $donOrder->select(DB::raw(1))
-                            ->from('don_order_hangs')
-                            ->whereColumn('don_order_hangs.don_hang_id', 'don_hangs.id')
-                            ->where('don_order_hangs.ma_don_order', 'like', '%' . $search . '%');
                     });
             });
         }
 
-        if (!empty($boLoc['trang_thai'])) {
+        if (!empty($boLoc['trang_thai']) && !$locTheoTrangThaiHienThi) {
             $query->where('trang_thai', $boLoc['trang_thai']);
         }
 
@@ -193,34 +194,39 @@ class DoiTacOrderHangService
         $this->apDungLocNgayTao($query, $boLoc);
 
         $perPage = min((int) ($boLoc['per_page'] ?? 15), 100);
+        if ($locTheoTrangThaiHienThi) {
+            $tatCaDonHang = $query->orderByDesc('created_at')->get();
+            $donOrderTheoDonHang = DonOrderHang::whereIn('don_hang_id', $tatCaDonHang->pluck('id'))
+                ->with('chiTiets')
+                ->get(['id', 'don_hang_id', 'trang_thai'])
+                ->keyBy('don_hang_id');
+
+            $danhSachDaLoc = $tatCaDonHang->map(function (DonHang $donHang) use ($donOrderTheoDonHang) {
+                return $this->formatDonBanTuOrder($donHang, $donOrderTheoDonHang->get($donHang->id));
+            })
+                ->filter(fn($donHang) => $donHang['trang_thai_hien_thi'] === ($boLoc['trang_thai'] ?? ''))
+                ->values();
+
+            $trangHienTai = max(1, (int) ($boLoc['page'] ?? request('page', 1)));
+            $duLieuTrang = $danhSachDaLoc->slice(($trangHienTai - 1) * $perPage, $perPage)->values();
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                $duLieuTrang,
+                $danhSachDaLoc->count(),
+                $perPage,
+                $trangHienTai
+            );
+        }
+
         $data = $query->orderByDesc('created_at')->paginate($perPage);
         $donHangIds = collect($data->items())->pluck('id');
         $donOrderTheoDonHang = DonOrderHang::whereIn('don_hang_id', $donHangIds)
-            ->get(['id', 'don_hang_id', 'ma_don_order'])
+            ->with('chiTiets')
+            ->get(['id', 'don_hang_id', 'trang_thai'])
             ->keyBy('don_hang_id');
 
         $data->setCollection(collect($data->items())->map(function (DonHang $donHang) use ($donOrderTheoDonHang) {
-            $donOrder = $donOrderTheoDonHang->get($donHang->id);
-
-            return [
-                'id' => $donHang->id,
-                'ma_don_hang' => $donHang->ma_don_hang,
-                'don_order_id' => $donOrder?->id,
-                'ma_don_order' => $donOrder?->ma_don_order,
-                'la_don_tu_order' => true,
-                'trang_thai' => $donHang->trang_thai,
-                'ngay_dat' => $donHang->ngay_dat,
-                'created_at' => $donHang->created_at,
-                'tien_thanh_toan' => (float) ($donHang->tien_thanh_toan ?? 0),
-                'da_thanh_toan' => (float) ($donHang->da_thanh_toan ?? 0),
-                'con_phai_tra' => max(0, (float) ($donHang->tien_thanh_toan ?? 0) - (float) ($donHang->da_thanh_toan ?? 0)),
-                'khach_hang' => $donHang->khachHang ? [
-                    'id' => $donHang->khachHang->id,
-                    'ten' => $donHang->khachHang->ten,
-                    'sdt' => $donHang->khachHang->sdt,
-                    'ma_khach_hang' => $donHang->khachHang->ma_khach_hang,
-                ] : null,
-            ];
+            return $this->formatDonBanTuOrder($donHang, $donOrderTheoDonHang->get($donHang->id));
         }));
 
         return $data;
@@ -240,12 +246,68 @@ class DoiTacOrderHangService
             ];
         }
 
+        $thongKeHienThiOrder = [
+            'cho_xu_ly' => ['so_luong' => 0, 'tong_tien' => 0],
+            'duyet_don_order' => ['so_luong' => 0, 'tong_tien' => 0],
+            'bao_hang_ve_order' => ['so_luong' => 0, 'tong_tien' => 0],
+            'bao_hang_ve_order_mot_phan' => ['so_luong' => 0, 'tong_tien' => 0],
+        ];
+
+        $donHangsDangCho = $this->taoQueryDonBanTuOrder($nhanVienId, $quyen)
+            ->where('trang_thai', 'cho_xu_ly');
+        $this->apDungLocNgayTao($donHangsDangCho, $boLoc);
+        $donHangsDangCho = $donHangsDangCho->get();
+
+        $donOrderTheoDonHang = DonOrderHang::whereIn('don_hang_id', $donHangsDangCho->pluck('id'))
+            ->with('chiTiets')
+            ->get(['id', 'don_hang_id', 'trang_thai'])
+            ->keyBy('don_hang_id');
+
+        foreach ($donHangsDangCho as $donHang) {
+            $trangThaiHienThi = $this->tinhTrangThaiHienThiDonBanOrder($donHang, $donOrderTheoDonHang->get($donHang->id));
+
+            if (!isset($thongKeHienThiOrder[$trangThaiHienThi])) {
+                continue;
+            }
+
+            $thongKeHienThiOrder[$trangThaiHienThi]['so_luong']++;
+            $thongKeHienThiOrder[$trangThaiHienThi]['tong_tien'] += (float) ($donHang->tien_thanh_toan ?? 0);
+        }
+
+        $ketQua['cho_xu_ly'] = $thongKeHienThiOrder['cho_xu_ly'];
+        $ketQua['duyet_don_order'] = $thongKeHienThiOrder['duyet_don_order'];
+        $ketQua['bao_hang_ve_order'] = $thongKeHienThiOrder['bao_hang_ve_order'];
+        $ketQua['bao_hang_ve_order_mot_phan'] = $thongKeHienThiOrder['bao_hang_ve_order_mot_phan'];
+
         return $ketQua;
+    }
+
+    private function formatDonBanTuOrder(DonHang $donHang, ?DonOrderHang $donOrder): array
+    {
+        return [
+            'id' => $donHang->id,
+            'ma_don_hang' => $donHang->ma_don_hang,
+            'don_order_id' => $donOrder?->id,
+            'la_don_tu_order' => true,
+            'trang_thai' => $donHang->trang_thai,
+            'trang_thai_hien_thi' => $this->tinhTrangThaiHienThiDonBanOrder($donHang, $donOrder),
+            'ngay_dat' => $donHang->ngay_dat,
+            'created_at' => $donHang->created_at,
+            'tien_thanh_toan' => (float) ($donHang->tien_thanh_toan ?? 0),
+            'da_thanh_toan' => (float) ($donHang->da_thanh_toan ?? 0),
+            'con_phai_tra' => max(0, (float) ($donHang->tien_thanh_toan ?? 0) - (float) ($donHang->da_thanh_toan ?? 0)),
+            'khach_hang' => $donHang->khachHang ? [
+                'id' => $donHang->khachHang->id,
+                'ten' => $donHang->khachHang->ten,
+                'sdt' => $donHang->khachHang->sdt,
+                'ma_khach_hang' => $donHang->khachHang->ma_khach_hang,
+            ] : null,
+        ];
     }
 
     public function layChiTietDonBanTuOrder(int $donHangId, int $nhanVienId, ?string $quyen = null): ?array
     {
-        $donOrderQuery = DonOrderHang::with(['nhanVien:id,ten', 'khachHang:id,ten,sdt,ma_khach_hang,email'])
+        $donOrderQuery = DonOrderHang::with(['nhanVien:id,ten', 'khachHang:id,ten,sdt,ma_khach_hang,email', 'chiTiets'])
             ->where('don_hang_id', $donHangId);
         $this->apDungPhamViDonOrder($donOrderQuery, $nhanVienId, $quyen);
         $donOrder = $donOrderQuery->first();
@@ -264,10 +326,90 @@ class DoiTacOrderHangService
             return null;
         }
 
+        $trangThaiOrderVe = $this->tinhTrangThaiHangOrderVe($donHang, $donOrder);
+
         return [
             'don_hang' => $donHang,
             'don_order' => $donOrder,
+            'trang_thai_hien_thi' => $this->tinhTrangThaiHienThiDonBanOrder($donHang, $donOrder),
+            'trang_thai_hang_order' => $trangThaiOrderVe['trang_thai'],
+            'don_order_tong_so_luong' => $trangThaiOrderVe['tong_so_luong'],
+            'don_order_so_luong_da_ve' => $trangThaiOrderVe['so_luong_da_ve'],
+            'don_order_da_bao_hang_ve' => $trangThaiOrderVe['da_bao_hang_ve'],
+            'so_luong_order_ve_theo_san_pham' => $trangThaiOrderVe['so_luong_theo_san_pham'],
         ];
+    }
+
+    private function tinhTrangThaiHangOrderVe(DonHang $donHang, ?DonOrderHang $donOrder): array
+    {
+        if (!$donOrder) {
+            return [
+                'tong_so_luong' => 0,
+                'so_luong_da_ve' => 0,
+                'trang_thai' => 'chua_ve',
+                'da_bao_hang_ve' => false,
+                'so_luong_theo_san_pham' => collect(),
+            ];
+        }
+
+        $tongSoLuongOrder = (int) $donOrder->chiTiets
+            ->where('trang_thai', '!=', 'da_huy')
+            ->sum('so_luong');
+
+        $soLuongTheoSanPham = LichSuDonOrderHang::query()
+            ->where('don_order_hang_id', $donOrder->id)
+            ->where('hanh_dong', 'hang_da_ve')
+            ->get(['du_lieu_them'])
+            ->flatMap(function ($lichSu) use ($donHang) {
+                return collect($lichSu->du_lieu_them['phan_bo'] ?? [])
+                    ->filter(function ($phanBo) use ($donHang) {
+                        return !empty($phanBo['don_hang_id'])
+                            && (int) $phanBo['don_hang_id'] === (int) $donHang->id;
+                    });
+            })
+            ->groupBy('san_pham_id')
+            ->map(fn($phanBos) => (int) $phanBos->sum('so_luong'));
+
+        $tongDaVe = (int) $soLuongTheoSanPham->sum();
+        $coBaoHangVeThuCong = LichSuDonHang::where('don_hang_id', $donHang->id)
+            ->where('hanh_dong', 'bao_hang_ve_order')
+            ->exists();
+
+        $trangThai = 'chua_ve';
+        if ($tongDaVe > 0 && $tongSoLuongOrder > 0) {
+            $trangThai = $tongDaVe >= $tongSoLuongOrder ? 've_du' : 've_mot_phan';
+        } elseif ($coBaoHangVeThuCong) {
+            $trangThai = 've_du';
+        }
+
+        return [
+            'tong_so_luong' => $tongSoLuongOrder,
+            'so_luong_da_ve' => $tongDaVe,
+            'trang_thai' => $trangThai,
+            'da_bao_hang_ve' => $tongDaVe > 0 || $coBaoHangVeThuCong,
+            'so_luong_theo_san_pham' => $soLuongTheoSanPham,
+        ];
+    }
+
+    private function tinhTrangThaiHienThiDonBanOrder(DonHang $donHang, ?DonOrderHang $donOrder): string
+    {
+        if (!$donOrder || $donHang->trang_thai !== 'cho_xu_ly') {
+            return $donHang->trang_thai;
+        }
+
+        $daDuyet = LichSuDonHang::where('don_hang_id', $donHang->id)
+            ->where('hanh_dong', 'duyet_don_order')
+            ->exists();
+
+        if (!$daDuyet) {
+            return 'cho_xu_ly';
+        }
+
+        return match ($this->tinhTrangThaiHangOrderVe($donHang, $donOrder)['trang_thai']) {
+            've_du' => 'bao_hang_ve_order',
+            've_mot_phan' => 'bao_hang_ve_order_mot_phan',
+            default => 'duyet_don_order',
+        };
     }
 
     private function taoQueryDonBanTuOrder(int $nhanVienId, ?string $quyen = null)

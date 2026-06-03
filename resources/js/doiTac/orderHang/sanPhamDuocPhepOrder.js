@@ -113,7 +113,7 @@ function renderDanhSach(items) {
                     <div class="flex items-end justify-between gap-2">
                         <div class="min-w-0">
                             <div class="text-xs font-semibold text-gray-400">Giá order từ</div>
-                            <div class="truncate text-sm font-bold sm:text-base" style="color:#1a1a2e">${formatCurrency(item.gia_order || item.gia_ban_le)}</div>
+                            <div class="truncate text-sm font-bold sm:text-base" style="color:#1a1a2e">${formatCurrency(item.gia_order)}</div>
                         </div>
                         <span class="shrink-0 rounded-full bg-gray-100 px-2 py-1 text-xs font-bold text-gray-700">${formatNumber(item.so_phien_ban)} phiên bản</span>
                     </div>

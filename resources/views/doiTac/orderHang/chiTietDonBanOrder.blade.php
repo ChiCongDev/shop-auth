@@ -11,12 +11,22 @@
         'tu_van_chuyen' => ['Tự vận chuyển', 'bg-teal-50 text-teal-700 border-teal-200'],
         'hoan_thanh' => ['Khách đã nhận hàng', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
         'huy' => ['Đã hủy', 'bg-red-50 text-red-700 border-red-200'],
+        'duyet_don_order' => ['Duyệt đơn', 'bg-cyan-50 text-cyan-700 border-cyan-200'],
+        'bao_hang_ve_order' => ['Báo hàng về', 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+        'bao_hang_ve_order_mot_phan' => ['Báo hàng về 1 phần', 'bg-amber-50 text-amber-700 border-amber-200'],
     ];
-    [$tenTrangThai, $lopTrangThai] = $trangThaiDonHang[$don_hang->trang_thai] ?? [$don_hang->trang_thai, 'bg-gray-50 text-gray-700 border-gray-200'];
 
     $lichSu = $don_hang->lichSuDonHangs ?? collect();
     $daDuyetOrder = $lichSu->contains('hanh_dong', 'duyet_don_order');
-    $daBaoHangVeOrder = $lichSu->contains('hanh_dong', 'bao_hang_ve_order');
+    $trangThaiHangOrder = $trang_thai_hang_order ?? 'chua_ve';
+    $daBaoHangVeOrder = (bool) ($don_order_da_bao_hang_ve ?? false);
+    $laNhanVienBanHang = in_array(session('doi_tac_quyen'), ['nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'], true);
+    $trangThaiHienThi = $trang_thai_hien_thi ?? $don_hang->trang_thai;
+    if ($laNhanVienBanHang) {
+        $trangThaiDonHang['bao_hang_ve_order'] = ['Hàng đã về', 'bg-emerald-50 text-emerald-700 border-emerald-200'];
+        $trangThaiDonHang['bao_hang_ve_order_mot_phan'] = ['Hàng về 1 phần', 'bg-amber-50 text-amber-700 border-amber-200'];
+    }
+    [$tenTrangThai, $lopTrangThai] = $trangThaiDonHang[$trangThaiHienThi] ?? [$trangThaiHienThi, 'bg-gray-50 text-gray-700 border-gray-200'];
     $tongSoLuong = $don_hang->chiTietDonHangs->sum('so_luong');
     $tongSanPham = $don_hang->chiTietDonHangs->count();
     $tongTien = (float) ($don_hang->tong_tien ?? $don_hang->chiTietDonHangs->sum('thanh_tien'));
@@ -31,10 +41,14 @@
     ]));
     $laNhanTaiQuay = ($don_hang->cach_thuc_nhan_hang ?? '') === 'nhan_tai_quay';
     $nhanHangText = $laNhanTaiQuay ? 'Nhận tại quầy' : 'Vận chuyển';
+    $labelHangOrderVe = match ($trangThaiHangOrder) {
+        've_mot_phan' => $laNhanVienBanHang ? 'Hàng về 1 phần' : 'Báo hàng về 1 phần',
+        default => $laNhanVienBanHang ? 'Hàng đã về' : 'Báo hàng về',
+    };
     $cacBuoc = [
         ['ma' => 'cho_xu_ly', 'ten' => 'Chờ xử lý'],
         ['ma' => 'duyet_don_order', 'ten' => 'Duyệt đơn'],
-        ['ma' => 'bao_hang_ve_order', 'ten' => 'Báo hàng về'],
+        ['ma' => 'bao_hang_ve_order', 'ten' => $labelHangOrderVe],
         ['ma' => 'xuat_kho', 'ten' => 'Xuất kho'],
         ['ma' => 'dong_goi', 'ten' => 'Đóng gói'],
         ['ma' => 'van_chuyen', 'ten' => 'Shipper đã lấy hàng'],
@@ -51,6 +65,7 @@
         'tao_don' => 'Tạo đơn hàng',
         'duyet_don_order' => 'Duyệt đơn order',
         'bao_hang_ve_order' => 'Báo hàng về',
+        'thong_bao_hang_order_da_ve' => 'Thông báo hàng order đã về',
         'xuat_kho' => 'Xuất kho',
         'dong_goi' => 'Đóng gói',
         'van_chuyen' => 'Shipper đã lấy hàng',
@@ -69,6 +84,7 @@
         'tao_don' => 'Đơn hàng được tạo mới',
         'duyet_don_order' => 'Đơn bán từ order đã được duyệt',
         'bao_hang_ve_order' => 'Đã báo hàng về cho đơn bán từ order',
+        'thong_bao_hang_order_da_ve' => 'Thông báo hàng order đã về từ phiếu nhập',
         'xuat_kho' => 'Đơn hàng đã được xuất kho',
         'dong_goi' => 'Đơn hàng đã được đóng gói',
         'van_chuyen' => 'Shipper đã lấy hàng',
@@ -97,6 +113,7 @@
         'tao_don' => ['bg-slate-50 text-slate-700 border-slate-200', 'bg-slate-600'],
         'duyet_don_order' => ['bg-cyan-50 text-cyan-700 border-cyan-200', 'bg-cyan-600'],
         'bao_hang_ve_order' => ['bg-amber-50 text-amber-700 border-amber-200', 'bg-amber-500'],
+        'thong_bao_hang_order_da_ve' => ['bg-emerald-50 text-emerald-700 border-emerald-200', 'bg-emerald-600'],
         'xuat_kho' => ['bg-blue-50 text-blue-700 border-blue-200', 'bg-blue-600'],
         'dong_goi' => ['bg-indigo-50 text-indigo-700 border-indigo-200', 'bg-indigo-600'],
         'van_chuyen' => ['bg-purple-50 text-purple-700 border-purple-200', 'bg-purple-600'],
@@ -120,6 +137,7 @@
     data-trang-thai="{{ $don_hang->trang_thai }}"
     data-da-duyet-order="{{ $daDuyetOrder ? '1' : '0' }}"
     data-da-bao-hang-ve-order="{{ $daBaoHangVeOrder ? '1' : '0' }}"
+    data-trang-thai-hang-order="{{ $trangThaiHangOrder }}"
     data-cach-thuc-nhan-hang="{{ $don_hang->cach_thuc_nhan_hang ?? '' }}"
     data-doi-tac-quyen="{{ session('doi_tac_quyen') }}"
 >
@@ -134,7 +152,7 @@
                         <span class="rounded-full border px-3 py-1 text-xs font-bold {{ $lopTrangThai }}">{{ $tenTrangThai }}</span>
                     </div>
                     <p class="mt-2 text-sm text-gray-500">
-                        Đơn order <span class="font-semibold text-gray-800">{{ $don_order->ma_don_order }}</span>
+                        Đơn bán được tạo từ order
                         @if($don_hang->ngay_dat)
                             · Ngày tạo {{ $don_hang->ngay_dat->format('d/m/Y') }}
                         @endif
@@ -142,8 +160,8 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2" id="don-ban-action-bar">
+                    <button type="button" data-action="lay-hang-trong-kho" class="hidden rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Lay hang trong kho</button>
                     <button type="button" data-action="duyet" class="hidden rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700">Duyệt đơn</button>
-                    <button type="button" data-action="bao-hang-ve" class="hidden rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">Báo hàng về</button>
                     <button type="button" data-action="xuat-kho" class="hidden rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Xuất kho</button>
                     <button type="button" data-action="dong-goi" class="hidden rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Đóng gói</button>
                     <button type="button" data-action="van-chuyen" class="hidden rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700">Shipper đã lấy hàng</button>
@@ -243,11 +261,25 @@
                 <h2 class="border-b border-gray-200 pb-3 text-sm font-bold uppercase text-gray-800">Thông tin đơn hàng</h2>
                 <div class="mt-4 space-y-2 text-sm text-gray-600">
                     <p><span class="font-semibold text-gray-950">Mã đơn hàng:</span> {{ $don_hang->ma_don_hang }}</p>
-                    <p><span class="font-semibold text-gray-950">Mã order:</span> {{ $don_order->ma_don_order }}</p>
+                    <p><span class="font-semibold text-gray-950">Nguồn đơn:</span> Order</p>
                     <p><span class="font-semibold text-gray-950">Nhân viên:</span> {{ $don_order->nhanVien?->ten ?? '-' }}</p>
                 </div>
             </div>
         </section>
+
+        @if(filled($don_order->ghi_chu))
+            <section id="boxGhiChuOrder" class="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                <div class="mb-3 flex items-center gap-3">
+                    <div class="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100">
+                        <svg class="h-3.5 w-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h7m-7 4h10M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-semibold text-amber-900">Ghi chu don order</span>
+                </div>
+                <p class="whitespace-pre-wrap text-sm leading-relaxed text-amber-900">{!! nl2br(e($don_order->ghi_chu)) !!}</p>
+            </section>
+        @endif
 
         <section class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div class="flex flex-col gap-3 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -262,6 +294,7 @@
                             <th class="w-20 px-3 py-3 text-left">Ảnh</th>
                             <th class="px-3 py-3 text-left">Tên sản phẩm</th>
                             <th class="w-28 px-3 py-3 text-center">Số lượng</th>
+                            <th class="w-28 px-3 py-3 text-center">SL order về</th>
                             <th class="w-36 px-3 py-3 text-right">Giá bán</th>
                             <th class="w-32 px-3 py-3 text-right">Chiết khấu</th>
                             <th class="w-40 px-5 py-3 text-right">Thành tiền</th>
@@ -273,6 +306,7 @@
                                 $anhRaw = $chiTiet->sanPham?->anh_san_pham;
                                 $anhArr = is_string($anhRaw) ? (json_decode($anhRaw, true) ?: [$anhRaw]) : (is_array($anhRaw) ? $anhRaw : []);
                                 $anh = $anhArr[0] ?? null;
+                                $soLuongOrderVe = (int) (($so_luong_order_ve_theo_san_pham ?? collect())->get($chiTiet->san_pham_id, 0));
                             @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="px-5 py-4 text-center text-gray-500">{{ $loop->iteration }}</td>
@@ -288,6 +322,7 @@
                                     <p class="mt-1 text-xs text-gray-500">{{ $chiTiet->sanPham?->ma_sku ?? '-' }}</p>
                                 </td>
                                 <td class="px-3 py-4 text-center font-semibold text-gray-800">{{ number_format($chiTiet->so_luong, 0, ',', '.') }}</td>
+                                <td class="px-3 py-4 text-center font-semibold text-green-700">{{ number_format($soLuongOrderVe, 0, ',', '.') }}</td>
                                 <td class="px-3 py-4 text-right font-semibold text-gray-800">{{ number_format($chiTiet->gia_ban, 0, ',', '.') }}đ</td>
                                 <td class="px-3 py-4 text-right text-gray-600">{{ number_format($chiTiet->chiet_khau ?? 0, 0, ',', '.') }}%</td>
                                 <td class="px-5 py-4 text-right font-bold text-gray-950">{{ number_format($chiTiet->thanh_tien, 0, ',', '.') }}đ</td>
@@ -335,6 +370,36 @@
                         if ($moTaLichSu === $tieuDeLichSu || $moTaLichSu === $hanhDong) {
                             $moTaLichSu = $lichSuMoTaMacDinh[$hanhDong] ?? '';
                         }
+                        $duLieuThemRaw = $item->du_lieu_them;
+                        $duLieuThem = is_array($duLieuThemRaw)
+                            ? $duLieuThemRaw
+                            : (is_string($duLieuThemRaw) ? (json_decode($duLieuThemRaw, true) ?: []) : []);
+                        $chiTietLayHangTrongKho = collect($duLieuThem['chi_tiet_phan_bo_hien_thi'] ?? []);
+                        $laLichSuLayHangTrongKho = $hanhDong === 'thong_bao_hang_order_da_ve'
+                            && ($duLieuThem['nguon'] ?? '') === 'lay_hang_trong_kho'
+                            && $chiTietLayHangTrongKho->isNotEmpty();
+                        if ($hanhDong === 'thong_bao_hang_order_da_ve' && ($duLieuThem['trang_thai_hang_order'] ?? '') === 've_mot_phan') {
+                            $tieuDeLichSu = $laNhanVienBanHang ? 'Hàng về 1 phần' : 'Thông báo hàng order về 1 phần';
+                        }
+                        $tongSoLuongLayHang = (int) $chiTietLayHangTrongKho->sum(fn($chiTietLayHang) => (int) ($chiTietLayHang['so_luong'] ?? 0));
+                        $tongPhieuNhapLayHang = $chiTietLayHangTrongKho
+                            ->pluck('ma_phieu_nhap')
+                            ->filter()
+                            ->unique()
+                            ->count();
+                        $tongTonCuLayHang = $chiTietLayHangTrongKho
+                            ->filter(fn($chiTietLayHang) => empty($chiTietLayHang['ma_phieu_nhap']))
+                            ->count();
+                        $tomTatLayHang = [
+                            number_format($chiTietLayHangTrongKho->count(), 0, ',', '.') . ' dòng phân bổ',
+                            number_format($tongSoLuongLayHang, 0, ',', '.') . ' sản phẩm',
+                        ];
+                        if ($tongPhieuNhapLayHang > 0) {
+                            $tomTatLayHang[] = number_format($tongPhieuNhapLayHang, 0, ',', '.') . ' phiếu nhập';
+                        }
+                        if ($tongTonCuLayHang > 0) {
+                            $tomTatLayHang[] = number_format($tongTonCuLayHang, 0, ',', '.') . ' dòng tồn kho cũ';
+                        }
                         [$lopChipLichSu, $lopChamLichSu] = $lichSuMau[$hanhDong] ?? ['bg-gray-50 text-gray-700 border-gray-200', 'bg-gray-500'];
                     @endphp
                     <article class="relative flex gap-4 pb-5 last:pb-0">
@@ -355,7 +420,47 @@
                                             {{ $loop->first ? 'Mới nhất' : 'Đã ghi nhận' }}
                                         </span>
                                     </div>
-                                    @if($moTaLichSu)
+                                    @if($laLichSuLayHangTrongKho)
+                                        <details class="group mt-3 overflow-hidden rounded-lg border border-emerald-100 bg-emerald-50/50">
+                                            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 hover:bg-emerald-50">
+                                                <span class="flex min-w-0 flex-wrap items-center gap-2">
+                                                    <span class="text-xs font-bold uppercase tracking-wide text-emerald-700">Lấy hàng trong kho</span>
+                                                    <span class="rounded bg-white px-2 py-1 text-xs font-semibold text-gray-600">{{ implode(' • ', $tomTatLayHang) }}</span>
+                                                </span>
+                                                <svg class="h-4 w-4 shrink-0 text-emerald-700 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </summary>
+                                            <div class="space-y-2 border-t border-emerald-100 p-3">
+                                                @foreach($chiTietLayHangTrongKho as $chiTietLayHang)
+                                                    @php
+                                                        $maPhieuNhap = $chiTietLayHang['ma_phieu_nhap'] ?? null;
+                                                        $giaNhap = $chiTietLayHang['gia_nhap'] ?? null;
+                                                    @endphp
+                                                    <div class="rounded-md border border-emerald-100 bg-white px-3 py-2">
+                                                        <div class="flex flex-wrap items-start gap-2">
+                                                            <span class="inline-flex h-5 min-w-5 items-center justify-center rounded bg-emerald-600 px-1.5 text-[11px] font-bold text-white">{{ $loop->iteration }}</span>
+                                                            <span class="font-semibold text-gray-900">{{ $chiTietLayHang['ten_san_pham'] ?? ('Sản phẩm #' . ($chiTietLayHang['san_pham_id'] ?? '')) }}</span>
+                                                            @if(!empty($chiTietLayHang['ma_sku']))
+                                                                <span class="rounded bg-blue-50 px-1.5 py-0.5 text-xs font-semibold text-blue-700">SKU: {{ $chiTietLayHang['ma_sku'] }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                                            <span class="rounded bg-green-100 px-2 py-1 font-semibold text-green-700">Số lượng: {{ number_format((int) ($chiTietLayHang['so_luong'] ?? 0), 0, ',', '.') }}</span>
+                                                            @if($maPhieuNhap)
+                                                                <span class="rounded bg-violet-100 px-2 py-1 font-semibold text-violet-700">Phiếu nhập: {{ $maPhieuNhap }}</span>
+                                                            @else
+                                                                <span class="rounded bg-amber-100 px-2 py-1 font-semibold text-amber-700">Nguồn: Tồn kho cũ/chưa xác định phiếu nhập</span>
+                                                            @endif
+                                                            @if($giaNhap !== null)
+                                                                <span class="rounded bg-orange-100 px-2 py-1 font-semibold text-orange-700">Giá nhập: {{ number_format((float) $giaNhap, 0, ',', '.') }}</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </details>
+                                    @elseif($moTaLichSu)
                                         <p class="mt-1 text-sm leading-6 text-gray-600">{{ $moTaLichSu }}</p>
                                     @endif
                                 </div>

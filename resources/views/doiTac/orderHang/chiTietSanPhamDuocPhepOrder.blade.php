@@ -1,11 +1,11 @@
 @extends('layouts.app')
-@section('title', 'Chi tiết hàng được phép order')
+@section('title', 'Chi tiết Deal Order')
 
 @section('content')
 @include('doiTac.orderHang._nav')
 <div id="chi-tiet-sp-duoc-phep-order" data-ma-chung="{{ $maChung }}" class="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pt-8 lg:px-8">
     <nav class="mb-6 flex items-center gap-2 text-sm text-gray-500">
-        <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="hover:text-gray-900">Hàng được phép order</a>
+        <a href="/doi-tac/order-hang/san-pham-duoc-phep" class="hover:text-gray-900">Deal Order</a>
         <span>/</span>
         <span id="breadcrumb-ten-sp" class="font-medium text-gray-900">Chi tiết sản phẩm</span>
     </nav>
@@ -64,7 +64,7 @@
                         </div>
                         <div>
                             <div class="text-xs font-semibold uppercase text-gray-400">Giá bán lẻ</div>
-                            <div id="pb-gia-ban-le" class="mt-1 font-semibold text-gray-900">-</div>
+                            <div id="pb-gia-ban-le" class="mt-1 hidden font-semibold text-gray-900">-</div>
                         </div>
                         <div>
                             <div class="text-xs font-semibold uppercase text-gray-400">Có thể bán</div>
@@ -114,7 +114,7 @@
     </div>
 </div>
 
-<div id="toast-notification" class="hidden fixed right-5 top-5 z-[70] min-w-80 rounded-xl border border-gray-100 bg-white p-4 shadow-xl">
+<div id="toast-notification" class="hidden fixed left-1/2 top-1/2 z-[100] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-gray-100 bg-white p-5 text-center shadow-2xl">
     <p id="toast-title" class="font-semibold text-gray-900"></p>
     <p id="toast-message" class="mt-1 text-sm text-gray-600"></p>
 </div>
