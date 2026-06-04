@@ -160,7 +160,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2" id="don-ban-action-bar">
-                    <button type="button" data-action="lay-hang-trong-kho" class="hidden rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Lay hang trong kho</button>
+                    <button type="button" data-action="lay-hang-trong-kho" class="hidden rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Lấy hàng trong kho</button>
                     <button type="button" data-action="duyet" class="hidden rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-700">Duyệt đơn</button>
                     <button type="button" data-action="xuat-kho" class="hidden rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Xuất kho</button>
                     <button type="button" data-action="dong-goi" class="hidden rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Đóng gói</button>

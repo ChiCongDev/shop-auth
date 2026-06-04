@@ -102,12 +102,12 @@ function renderModalLayHangTrongKho(items) {
             <label class="flex gap-3 rounded-lg border border-gray-200 bg-white p-4 ${disabled ? 'opacity-60' : ''}">
                 <input type="checkbox" class="mt-1 h-4 w-4 rounded border-gray-300 text-teal-600" data-lay-hang-check data-index="${index}" ${disabled ? 'disabled' : 'checked'}>
                 <div class="min-w-0 flex-1">
-                    <p class="font-semibold text-gray-950">${escapeHtml(item.ten || 'San pham')}</p>
+                    <p class="font-semibold text-gray-950">${escapeHtml(item.ten || 'Sản phẩm')}</p>
                     <p class="mt-1 text-xs text-gray-500">${escapeHtml(item.ma_sku || '-')}</p>
                     <div class="mt-2 grid gap-2 text-xs text-gray-600 sm:grid-cols-3">
-                        <span>Con thieu: <b>${formatNumber(item.so_luong_con_thieu)}</b></span>
-                        <span>Co the ban: <b>${formatNumber(item.co_the_ban)}</b></span>
-                        <span>Co the lay: <b>${formatNumber(max)}</b></span>
+                        <span>Còn thiếu: <b>${formatNumber(item.so_luong_con_thieu)}</b></span>
+                        <span>Có thể bán: <b>${formatNumber(item.co_the_ban)}</b></span>
+                        <span>Có thể lấy: <b>${formatNumber(max)}</b></span>
                     </div>
                 </div>
                 <input type="number" min="1" max="${max}" value="${max > 0 ? max : 1}" data-lay-hang-qty data-index="${index}" ${disabled ? 'disabled' : ''} class="h-10 w-24 rounded-lg border border-gray-300 px-3 text-center text-sm font-semibold outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
@@ -119,17 +119,23 @@ function renderModalLayHangTrongKho(items) {
         <div class="w-full max-w-3xl rounded-xl bg-white shadow-2xl">
             <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-950">Lay hang trong kho</h3>
-                    <p class="mt-1 text-sm text-gray-500">Chon san pham va so luong muon lay de bao hang order ve.</p>
+                    <h3 class="text-lg font-bold text-gray-950">Lấy hàng trong kho</h3>
+                    <p class="mt-1 text-sm text-gray-500">Chọn sản phẩm và số lượng muốn lấy để báo hàng order về.</p>
                 </div>
-                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">Dong</button>
+                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">Đóng</button>
+            </div>
+            <div class="border-b border-gray-100 px-5 py-3">
+                <label class="inline-flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <input type="checkbox" data-lay-hang-check-all class="h-4 w-4 rounded border-gray-300 text-teal-600" checked>
+                    <span>Chọn tất cả sản phẩm có thể lấy</span>
+                </label>
             </div>
             <div class="max-h-[60vh] space-y-3 overflow-y-auto bg-gray-50 px-5 py-4">
-                ${rows || '<div class="rounded-lg border border-gray-200 bg-white p-5 text-center text-sm font-semibold text-gray-500">Khong co san pham nao co the lay trong kho.</div>'}
+                ${rows || '<div class="rounded-lg border border-gray-200 bg-white p-5 text-center text-sm font-semibold text-gray-500">Không có sản phẩm nào có thể lấy trong kho.</div>'}
             </div>
             <div class="flex flex-col gap-2 border-t border-gray-100 px-5 py-4 sm:flex-row sm:justify-end">
-                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Huy</button>
-                <button type="button" data-submit-lay-hang class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Xac nhan lay hang</button>
+                <button type="button" data-close-modal class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Hủy</button>
+                <button type="button" data-submit-lay-hang class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Xác nhận lấy hàng</button>
             </div>
         </div>
     `;
@@ -139,6 +145,31 @@ function renderModalLayHangTrongKho(items) {
             dongModalLayHangTrongKho();
         }
     });
+
+    const checkAll = modal.querySelector('[data-lay-hang-check-all]');
+    const itemChecks = Array.from(modal.querySelectorAll('[data-lay-hang-check]'));
+    const enabledChecks = itemChecks.filter((checkbox) => !checkbox.disabled);
+
+    const capNhatChonTatCa = () => {
+        if (!checkAll) return;
+
+        const checkedCount = enabledChecks.filter((checkbox) => checkbox.checked).length;
+        checkAll.checked = enabledChecks.length > 0 && checkedCount === enabledChecks.length;
+        checkAll.indeterminate = checkedCount > 0 && checkedCount < enabledChecks.length;
+        checkAll.disabled = enabledChecks.length === 0;
+    };
+
+    checkAll?.addEventListener('change', () => {
+        enabledChecks.forEach((checkbox) => {
+            checkbox.checked = checkAll.checked;
+        });
+        capNhatChonTatCa();
+    });
+
+    itemChecks.forEach((checkbox) => {
+        checkbox.addEventListener('change', capNhatChonTatCa);
+    });
+    capNhatChonTatCa();
 
     modal.querySelector('[data-submit-lay-hang]')?.addEventListener('click', () => guiLayHangTrongKho(items));
     document.body.appendChild(modal);
@@ -150,7 +181,7 @@ async function moModalLayHangTrongKho(button) {
     const donHangId = root.dataset.donHangId;
     const originalText = button.textContent;
     button.disabled = true;
-    button.textContent = 'Dang kiem tra...';
+    button.textContent = 'Đang kiểm tra...';
 
     try {
         const response = await fetch(`/api/doi-tac/order-hang/don-ban/${donHangId}/lay-hang-trong-kho`, {
@@ -159,19 +190,19 @@ async function moModalLayHangTrongKho(button) {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-            hienThongBao(data.message || 'Khong kiem tra duoc hang trong kho.', 'error');
+            hienThongBao(data.message || 'Không kiểm tra được hàng trong kho.', 'error');
             return;
         }
 
         const items = data.data?.items || [];
         if (!items.length) {
-            hienThongBao('Khong co san pham nao con thieu co the lay trong kho.', 'info');
+            hienThongBao('Không có sản phẩm nào còn thiếu có thể lấy trong kho.', 'info');
             return;
         }
 
         renderModalLayHangTrongKho(items);
     } catch (error) {
-        hienThongBao('Khong ket noi duoc may chu kiem tra hang trong kho.', 'error');
+        hienThongBao('Không kết nối được máy chủ kiểm tra hàng trong kho.', 'error');
     } finally {
         button.disabled = false;
         button.textContent = originalText;
@@ -196,7 +227,7 @@ async function guiLayHangTrongKho(items) {
     }).filter(item => item.san_pham_id > 0 && item.so_luong > 0);
 
     if (!sanPhams.length) {
-        hienThongBao('Vui long chon it nhat mot san pham co the lay trong kho.', 'error');
+        hienThongBao('Vui lòng chọn ít nhất một sản phẩm có thể lấy trong kho.', 'error');
         return;
     }
 
@@ -204,7 +235,7 @@ async function guiLayHangTrongKho(items) {
     const originalText = submitButton?.textContent || '';
     if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = 'Dang xu ly...';
+        submitButton.textContent = 'Đang xử lý...';
     }
 
     try {
@@ -220,15 +251,15 @@ async function guiLayHangTrongKho(items) {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-            hienThongBao(data.message || 'Khong the lay hang trong kho.', 'error');
+            hienThongBao(data.message || 'Không thể lấy hàng trong kho.', 'error');
             return;
         }
 
-        hienThongBao(data.message || 'Da lay hang trong kho.', 'success');
+        hienThongBao(data.message || 'Đã lấy hàng trong kho.', 'success');
         dongModalLayHangTrongKho();
         window.setTimeout(() => window.location.reload(), 800);
     } catch (error) {
-        hienThongBao('Khong ket noi duoc may chu xu ly lay hang trong kho.', 'error');
+        hienThongBao('Không kết nối được máy chủ xử lý lấy hàng trong kho.', 'error');
     } finally {
         if (submitButton) {
             submitButton.disabled = false;
