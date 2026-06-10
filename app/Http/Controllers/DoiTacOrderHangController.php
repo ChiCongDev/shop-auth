@@ -743,6 +743,7 @@ class DoiTacOrderHangController extends Controller
 
         return response()->json(['success' => true, 'data' => $duLieu]);
     }
+    
 
     public function apiLayDanhSachPhieuTraHang(Request $request)
     {

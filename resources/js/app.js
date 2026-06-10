@@ -32,12 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!input || !dropdown || !ketQua) return;
 
         let debounceTimer = null;
+        let requestController = null;
+        let latestRequestId = 0;
 
         input.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             const keyword = input.value.trim();
 
             if (keyword.length < 2) {
+                huyRequestDangChay();
                 anDropdown();
                 return;
             }
@@ -72,11 +75,25 @@ document.addEventListener('DOMContentLoaded', () => {
             xemTatCa?.classList.add('hidden');
         }
 
+        function huyRequestDangChay() {
+            if (requestController) {
+                requestController.abort();
+                requestController = null;
+            }
+        }
+
         async function timKiem(keyword) {
+            const requestId = ++latestRequestId;
+            huyRequestDangChay();
+            requestController = new AbortController();
+
             try {
-                const res = await fetch(buildAutocompleteUrl(keyword));
+                const res = await fetch(buildAutocompleteUrl(keyword), {
+                    signal: requestController.signal,
+                });
                 const data = await res.json();
 
+                if (requestId !== latestRequestId) return;
                 if (!data.success) return;
 
                 ketQua.innerHTML = '';
@@ -119,7 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 dropdown.classList.remove('hidden');
             } catch (err) {
+                if (err.name === 'AbortError') return;
                 console.error('Lỗi tìm kiếm:', err);
+            } finally {
+                if (requestId === latestRequestId) {
+                    requestController = null;
+                }
             }
         }
 

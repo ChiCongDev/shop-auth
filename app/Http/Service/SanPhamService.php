@@ -190,12 +190,7 @@ class SanPhamService
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0');
 
         if ($search !== '') {
-            $subQuery->where(function ($q) use ($search) {
-                $q->where('sp_inner.ten', 'like', "%{$search}%")
-                  ->orWhere('sp_inner.ten_chung', 'like', "%{$search}%")
-                  ->orWhere('sp_inner.nhan_hieu', 'like', "%{$search}%")
-                  ->orWhere('sp_inner.ma_sku', 'like', "%{$search}%");
-            });
+            $this->apDungTimKiemSanPham($subQuery, 'sp_inner', $search);
         }
         if ($loai !== '') {
             if ($loai === 'quan-ao') {
@@ -359,11 +354,7 @@ class SanPhamService
 
         // Lọc theo từkhóa đang tìm
         if ($search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('sp.ten', 'like', "%{$search}%")
-                  ->orWhere('sp.ten_chung', 'like', "%{$search}%")
-                  ->orWhere('sp.nhan_hieu', 'like', "%{$search}%");
-            });
+            $this->apDungTimKiemSanPham($query, 'sp', $search, ['ten', 'ten_chung', 'nhan_hieu', 'ma_sku', 'ma_vach']);
         }
 
         return $query->pluck('sp.nhan_hieu')->toArray();
@@ -383,20 +374,17 @@ class SanPhamService
         string $nhanHieu = ''
     ): array
     {
-        if (strlen(trim($keyword)) < 2) return [];
+        if (mb_strlen(trim($keyword), 'UTF-8') < 2) return [];
 
         $ids = DB::table('san_phams as sp')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
             ->selectRaw('MIN(sp.id) as min_id')
-            ->where(function ($q) use ($keyword) {
-                $q->where('sp.ten', 'like', "%{$keyword}%")
-                  ->orWhere('sp.ten_chung', 'like', "%{$keyword}%")
-                  ->orWhere('sp.nhan_hieu', 'like', "%{$keyword}%")
-                  ->orWhere('sp.ma_sku', 'like', "%{$keyword}%");
-            })
             ->groupBy('sp.ma_chung')
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0')
+            ->orderByRaw('MAX(sp.created_at) DESC')
             ->limit($soLuong);
+
+        $this->apDungTimKiemSanPham($ids, 'sp', $keyword);
 
         if ($loai !== '') {
             if ($loai === 'quan-ao') {
@@ -432,6 +420,57 @@ class SanPhamService
     // =========================================================
     // PRIVATE HELPERS
     // =========================================================
+
+    private function apDungTimKiemSanPham($query, string $alias, string $keyword, array $columns = ['ten', 'ten_chung', 'nhan_hieu', 'ma_sku', 'ma_vach', 'ma_chung']): void
+    {
+        $variants = $this->taoBienTheUnicodeTimKiem($keyword);
+        if (empty($variants)) {
+            return;
+        }
+
+        $allowedColumns = ['ten', 'ten_chung', 'nhan_hieu', 'ma_sku', 'ma_vach', 'ma_chung'];
+        $columns = array_values(array_intersect($columns, $allowedColumns));
+
+        $query->where(function ($q) use ($alias, $columns, $variants) {
+            foreach ($variants as $variant) {
+                $pattern = $this->taoMauLikeAnToan($variant);
+
+                foreach ($columns as $column) {
+                    $q->orWhereRaw("{$alias}.{$column} LIKE ? ESCAPE '\\\\'", [$pattern]);
+                }
+            }
+        });
+    }
+
+    private function taoBienTheUnicodeTimKiem(string $keyword): array
+    {
+        $keyword = trim($keyword);
+        if ($keyword === '') {
+            return [];
+        }
+
+        $variants = [$keyword];
+
+        if (class_exists(\Normalizer::class)) {
+            $nfc = \Normalizer::normalize($keyword, \Normalizer::FORM_C);
+            $nfd = \Normalizer::normalize($keyword, \Normalizer::FORM_D);
+
+            if (is_string($nfc) && $nfc !== '') {
+                $variants[] = $nfc;
+            }
+
+            if (is_string($nfd) && $nfd !== '') {
+                $variants[] = $nfd;
+            }
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    private function taoMauLikeAnToan(string $keyword): string
+    {
+        return '%' . addcslashes($keyword, '\\%_') . '%';
+    }
 
     /**
      * Gom tất cả ảnh từ các phiên bản, loại trùng lặp
