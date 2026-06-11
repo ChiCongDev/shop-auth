@@ -69,13 +69,6 @@
                        style="color:#d4af37">
                         Deal Order
                     </a>
-                    @if(session('doi_tac_quyen') !== 'quan_ly_order')
-                    <a href="/doi-tac/don-hang"
-                       class="whitespace-nowrap font-semibold transition-colors {{ Request::is('doi-tac/don-hang*') ? 'underline underline-offset-4' : '' }}"
-                       style="color:#d4af37">
-                        Don hang
-                    </a>
-                    @endif
                     <div class="group relative shrink-0">
                         <a href="/doi-tac/order-hang/danh-sach"
                            class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors"
@@ -212,9 +205,6 @@
                         </button>
                         <div id="dropdown-doi-tac"
                              class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg py-1 z-50 border border-gray-100">
-                            @if(session('doi_tac_quyen') !== 'quan_ly_order')
-                                <a href="/doi-tac/don-hang" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Don hang</a>
-                            @endif
                             <a href="/doi-tac/order-hang/danh-sach" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Đơn order của tôi</a>
                             <a href="/doi-tac/order-hang/tao" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Tạo đơn order</a>
                             @if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'quan_ly_order'], true))
