@@ -88,6 +88,7 @@
                     </div>
                 </div>
 
+                @if(session('doi_tac_id'))
                 <div class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-4">
                     <label class="block text-sm font-semibold text-gray-700">Số lượng order</label>
                     <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -104,6 +105,7 @@
                         </a>
                     </div>
                 </div>
+                @endif
             </div>
         </section>
 
@@ -119,6 +121,7 @@
     <p id="toast-message" class="mt-1 text-sm text-gray-600"></p>
 </div>
 
+@if(session('doi_tac_id'))
 <div id="modal-tao-order-nhanh" class="fixed inset-0 z-[80] hidden bg-black/40 p-4">
     <div class="mx-auto mt-8 max-h-[88vh] max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div class="flex items-start justify-between border-b border-gray-200 px-5 py-4">
@@ -179,6 +182,7 @@
         </div>
     </div>
 </div>
+@endif
 
 @push('scripts')
 <script>

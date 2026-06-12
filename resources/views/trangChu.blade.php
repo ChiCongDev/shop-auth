@@ -24,7 +24,7 @@
                 ['href' => '/san-pham?loai=balo-tui', 'icon' => '🎒', 'label' => 'Balo'],
                 ];
 
-                if (config('services.doi_tac_order.enabled', false) && session('doi_tac_id')) {
+                if (config('services.doi_tac_order.enabled', false)) {
                     $danhMucTrangChu[] = [
                         'href' => '/doi-tac/order-hang/san-pham-duoc-phep',
                         'icon' => '📦',

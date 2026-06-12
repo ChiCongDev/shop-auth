@@ -63,12 +63,13 @@
                         <span class="absolute -top-2 -right-5 px-1.5 py-0.5 rounded-full text-white font-bold leading-none"
                               style="font-size:9px; background:#ff4d4f">NEW</span>
                     </a>
-                    @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
+                    @if(config('services.doi_tac_order.enabled', false))
                     <a href="/doi-tac/order-hang/san-pham-duoc-phep"
                        class="whitespace-nowrap font-semibold transition-colors"
                        style="color:#d4af37">
                         Deal Order
                     </a>
+                    @if(session('doi_tac_id'))
                     <div class="group relative shrink-0">
                         <a href="/doi-tac/order-hang/danh-sach"
                            class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors"
@@ -88,6 +89,7 @@
                             @endif
                         </div>
                     </div>
+                    @endif
                     @endif
                 </nav>
 
