@@ -330,7 +330,7 @@ class DoiTacOrderHangController extends Controller
                 'duoc_phep_order',
                 'order_listed_at'
             )
-                ->with(['thuocTinhs:id,san_pham_id,ten_thuoc_tinh,gia_tri'])
+                ->with(['thuocTinhs:id,san_pham_id,ten_thuoc_tinh,gia_tri', 'sanPhamGias:id,san_pham_id,chinh_sach_gia_id,gia'])
                 ->where('ma_chung', $maChung)
                 ->where('duoc_phep_order', true)
                 ->orderBy('id')
@@ -385,6 +385,12 @@ class DoiTacOrderHangController extends Controller
                     'order_listed_at' => $sanPham->order_listed_at,
                     'anh_chinh' => $this->layAnhChinh($sanPham->anh_san_pham),
                     'thuoc_tinh' => $thuocTinh,
+                    'chinh_sach_gias' => $sanPham->sanPhamGias
+                        ->map(fn($gia) => [
+                            'chinh_sach_gia_id' => $gia->chinh_sach_gia_id,
+                            'gia' => (float) $gia->gia,
+                        ])
+                        ->values(),
                 ];
             })->values();
 
