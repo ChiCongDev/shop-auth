@@ -90,6 +90,7 @@
                             data-id="{{ $pb['id'] }}"
                             data-gia="{{ $pb['gia'] }}"
                             data-ton="{{ $pb['ton_kho'] }}"
+                            data-vi-tri="{{ $pb['vi_tri'] ?? '' }}"
                             @if($pb['ton_kho'] <= 0) disabled @endif
                             onclick="chonPhienBan(this)">
                         {{ $pb['ten'] }}
@@ -118,6 +119,9 @@
                             <span class="w-2 h-2 bg-green-500 rounded-full inline-block"></span>&nbsp;Còn&nbsp;<strong>{{ $ton }}</strong>&nbsp;sản phẩm
                         </span>
                     @endif
+                    <span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                        Vị trí: <strong>{{ filled($pbDau['vi_tri'] ?? null) ? $pbDau['vi_tri'] : '-' }}</strong>
+                    </span>
                 @endif
             </div>
 
@@ -221,6 +225,9 @@
 
         const ton = parseInt(btn.dataset.ton);
         const ttEl = document.getElementById('trang-thai-ton-kho');
+        const viTri = btn.dataset.viTri || '-';
+        const viTriHtml = '<span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">' +
+            'Vị trí: <strong>' + escapeHtmlInline(viTri || '-') + '</strong></span>';
 
         // Hiển thị số tồn kho chính xác
         if (ton <= 0) {
@@ -233,6 +240,8 @@
             ttEl.innerHTML = '<span class="inline-flex items-center gap-1.5 text-sm font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">' +
                 '<span class="w-2 h-2 bg-green-500 rounded-full inline-block"></span>\u00a0Còn&nbsp;<strong>' + ton + '</strong>&nbsp;sản phẩm</span>';
         }
+
+        ttEl.insertAdjacentHTML('beforeend', viTriHtml);
 
         const gia = parseInt(btn.dataset.gia);
         document.querySelectorAll('#gia-hien-thi').forEach(el => {
@@ -251,6 +260,12 @@
             btnGio.style.opacity = ton <= 0 ? '0.5' : '1';
             btnGio.style.cursor = ton <= 0 ? 'not-allowed' : 'pointer';
         }
+    }
+
+    function escapeHtmlInline(value) {
+        const div = document.createElement('div');
+        div.textContent = value;
+        return div.innerHTML;
     }
 
     function themVaoGio() {
