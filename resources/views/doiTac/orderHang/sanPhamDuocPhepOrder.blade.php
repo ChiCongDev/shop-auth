@@ -10,10 +10,12 @@
             <h1 class="mt-1 text-2xl font-bold text-gray-900">Deal Order</h1>
             <p class="mt-1 text-sm text-gray-500">Chỉ xem các sản phẩm đang được bật order. Việc bật/tắt và chỉnh giá vẫn được quản lý ở hệ thống bán hàng.</p>
         </div>
+        @if(session('doi_tac_id'))
         <a href="/doi-tac/order-hang/tao" class="inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-bold text-white shadow-sm hover:opacity-90"
            style="background: linear-gradient(135deg, #1a1a2e, #d4af37)">
             Tạo đơn order
         </a>
+        @endif
     </div>
 
     <section class="rounded-2xl border border-gray-100 bg-white shadow-sm">

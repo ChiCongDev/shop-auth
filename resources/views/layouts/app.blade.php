@@ -63,18 +63,31 @@
                         <span class="absolute -top-2 -right-5 px-1.5 py-0.5 rounded-full text-white font-bold leading-none"
                               style="font-size:9px; background:#ff4d4f">NEW</span>
                     </a>
-                    @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
+                    @if(config('services.doi_tac_order.enabled', false))
                     <a href="/doi-tac/order-hang/san-pham-duoc-phep"
                        class="whitespace-nowrap font-semibold transition-colors"
                        style="color:#d4af37">
                         Deal Order
                     </a>
+                    @endif
+                    @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
                     @if(session('doi_tac_quyen') !== 'quan_ly_order')
-                    <a href="/doi-tac/don-hang"
-                       class="whitespace-nowrap font-semibold transition-colors {{ Request::is('doi-tac/don-hang*') ? 'underline underline-offset-4' : '' }}"
-                       style="color:#d4af37">
-                        Don hang
-                    </a>
+                    <div class="group relative shrink-0">
+                        <a href="/doi-tac/don-hang"
+                           class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors {{ Request::is('doi-tac/don-hang*') ? 'underline underline-offset-4' : '' }}"
+                           style="color:#d4af37">
+                            Don hang
+                            <svg class="h-4 w-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </a>
+                        <div class="invisible absolute left-0 top-full z-50 mt-3 w-64 rounded-2xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100">
+                            <a href="/doi-tac/don-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách đơn hàng</a>
+                            @if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho'], true))
+                                <a href="/doi-tac/don-hang/khach-tra-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Khách trả hàng</a>
+                            @endif
+                        </div>
+                    </div>
                     @endif
                     <div class="group relative shrink-0">
                         <a href="/doi-tac/order-hang/danh-sach"

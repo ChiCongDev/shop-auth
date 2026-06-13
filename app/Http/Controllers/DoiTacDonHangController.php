@@ -37,6 +37,34 @@ class DoiTacDonHangController extends Controller
         ]);
     }
 
+    public function hienThiDoiTraHang(int $id)
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return redirect('/doi-tac/don-hang')
+                ->with('loi', 'Tai khoan nay khong co quyen doi tra don hang thuong.');
+        }
+
+        $ketQua = $this->donHangNoiBoService->layChiTiet($id, (int) session('doi_tac_id'));
+        if (!$ketQua['success']) {
+            return redirect('/doi-tac/don-hang')
+                ->with('loi', $ketQua['message'] ?? 'Khong tim thay don hang.');
+        }
+
+        return view('doiTac.donHang.doiTraHang', [
+            'donHang' => $ketQua['data'] ?? [],
+        ]);
+    }
+
+    public function hienThiDanhSachPhieuTraHang()
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return redirect('/doi-tac/don-hang')
+                ->with('loi', 'Tai khoan nay khong co quyen xem phieu tra don hang thuong.');
+        }
+
+        return view('doiTac.donHang.danhSachPhieuTraHang');
+    }
+
     public function apiLayDanhSach(Request $request)
     {
         if (!$this->coQuyenXemDonHangThuong()) {
@@ -85,10 +113,144 @@ class DoiTacDonHangController extends Controller
         ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
     }
 
+    public function apiLayDanhSachPhieuTraHang(Request $request)
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen xem phieu tra don hang thuong.',
+            ], 403);
+        }
+
+        $ketQua = $this->donHangNoiBoService->layDanhSachPhieuTra((int) session('doi_tac_id'), [
+            'page' => $request->input('page', 1),
+            'per_page' => $request->input('per_page', 15),
+            'search' => trim($request->input('search', '')),
+            'trang_thai' => $request->input('trang_thai'),
+            'tu_ngay' => $request->input('tu_ngay'),
+            'den_ngay' => $request->input('den_ngay'),
+        ]);
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? [],
+            'pagination' => $this->chuanHoaPhanTrang($ketQua['pagination'] ?? null),
+            'stats' => $ketQua['stats'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
+    public function apiLayChiTietPhieuTraHang(int $id)
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen xem phieu tra don hang thuong.',
+            ], 403);
+        }
+
+        $ketQua = $this->donHangNoiBoService->layChiTietPhieuTra($id, (int) session('doi_tac_id'));
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
+    public function apiThaoTac(int $id, string $hanhDong)
+    {
+        if (!$this->coQuyenThaoTacDonHangThuong($hanhDong)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen thuc hien thao tac nay.',
+            ], 403);
+        }
+
+        $ketQua = $this->donHangNoiBoService->guiThaoTac($id, (int) session('doi_tac_id'), $hanhDong);
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
+    public function apiLaySoLuongDaTra(int $donHangId)
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen xem so luong tra don hang thuong.',
+            ], 403);
+        }
+
+        $ketQua = $this->donHangNoiBoService->laySoLuongDaTra($donHangId, (int) session('doi_tac_id'));
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? [],
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
+    public function apiTaoPhieuTraHang(Request $request)
+    {
+        if (!$this->coQuyenQuanLyTraHangThuong()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen tao phieu tra don hang thuong.',
+            ], 403);
+        }
+
+        $request->validate([
+            'don_hang_id' => 'required|integer',
+            'san_phams' => 'required|array|min:1',
+            'san_phams.*.san_pham_id' => 'required|integer',
+            'san_phams.*.so_luong' => 'required|integer|min:1',
+            'san_phams.*.gia_tra' => 'required|numeric|min:0',
+        ]);
+
+        $ketQua = $this->donHangNoiBoService->taoPhieuTra((int) session('doi_tac_id'), $request->only([
+            'don_hang_id',
+            'san_phams',
+            'ly_do_tra',
+            'ghi_chu',
+            'chi_nhanh',
+            'tham_chieu',
+        ]));
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
     private function coQuyenXemDonHangThuong(): bool
     {
         return session('doi_tac_id')
             && in_array(session('doi_tac_quyen'), ['admin', 'thu_kho', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'], true);
+    }
+
+    private function coQuyenQuanLyTraHangThuong(): bool
+    {
+        return session('doi_tac_id')
+            && in_array(session('doi_tac_quyen'), ['admin', 'thu_kho'], true);
+    }
+
+    private function coQuyenThaoTacDonHangThuong(string $hanhDong): bool
+    {
+        $quyen = session('doi_tac_quyen');
+        $quyenTheoHanhDong = [
+            'xuat-kho' => ['admin', 'thu_kho'],
+            'dong-goi' => ['admin', 'thu_kho', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'van-chuyen' => ['admin', 'thu_kho', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'tu-van-chuyen-ntq' => ['admin', 'thu_kho', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+            'hoan-thanh' => ['admin', 'thu_kho', 'nhan_vien_ban_hang_cap_1', 'nhan_vien_ban_hang_cap_2'],
+        ];
+
+        return in_array($quyen, $quyenTheoHanhDong[$hanhDong] ?? [], true);
     }
 
     private function chuanHoaPhanTrang(?array $phanTrang): ?array

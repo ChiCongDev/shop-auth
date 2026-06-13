@@ -28,7 +28,77 @@ class DoiTacDonHangNoiBoService
         ]);
     }
 
+    public function guiThaoTac(int $donHangId, int $nhanVienId, string $hanhDong): array
+    {
+        return $this->guiPost('/api/noi-bo/don-hang/' . $donHangId . '/' . $hanhDong, [
+            'nhan_vien_id' => $nhanVienId,
+            'nguon' => 'shop_auth_doi_tac',
+        ], [
+            'don_hang_id' => $donHangId,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => $hanhDong,
+        ]);
+    }
+
+    public function laySoLuongDaTra(int $donHangId, int $nhanVienId): array
+    {
+        return $this->guiGet('/api/noi-bo/phieu-tra-hang/so-luong-da-tra/' . $donHangId, [
+            'nhan_vien_id' => $nhanVienId,
+            'loai_don' => 'thuong',
+        ], [
+            'don_hang_id' => $donHangId,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_so_luong_da_tra_don_thuong',
+        ]);
+    }
+
+    public function taoPhieuTra(int $nhanVienId, array $payload): array
+    {
+        return $this->guiPost('/api/noi-bo/phieu-tra-hang/tao', array_merge($payload, [
+            'nhan_vien_id' => $nhanVienId,
+            'loai_don' => 'thuong',
+            'nguon' => 'shop_auth_doi_tac',
+        ]), [
+            'don_hang_id' => $payload['don_hang_id'] ?? null,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'tao_phieu_tra_don_thuong',
+        ]);
+    }
+
+    public function layDanhSachPhieuTra(int $nhanVienId, array $boLoc = []): array
+    {
+        return $this->guiGet('/api/noi-bo/phieu-tra-hang/danh-sach', array_merge($boLoc, [
+            'nhan_vien_id' => $nhanVienId,
+            'loai_don' => 'thuong',
+        ]), [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_danh_sach_phieu_tra_don_thuong',
+        ]);
+    }
+
+    public function layChiTietPhieuTra(int $phieuTraHangId, int $nhanVienId): array
+    {
+        return $this->guiGet('/api/noi-bo/phieu-tra-hang/' . $phieuTraHangId, [
+            'nhan_vien_id' => $nhanVienId,
+            'loai_don' => 'thuong',
+        ], [
+            'phieu_tra_hang_id' => $phieuTraHangId,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_chi_tiet_phieu_tra_don_thuong',
+        ]);
+    }
+
     private function guiGet(string $path, array $query = [], array $logContext = []): array
+    {
+        return $this->guiRequest('get', $path, $query, $logContext);
+    }
+
+    private function guiPost(string $path, array $payload = [], array $logContext = []): array
+    {
+        return $this->guiRequest('post', $path, $payload, $logContext);
+    }
+
+    private function guiRequest(string $method, string $path, array $data = [], array $logContext = []): array
     {
         if (!config('services.sell_internal.enabled', false)) {
             return [
@@ -50,10 +120,14 @@ class DoiTacDonHangNoiBoService
         }
 
         try {
-            $response = Http::acceptJson()
+            $request = Http::acceptJson()
+                ->asJson()
                 ->timeout((int) config('services.sell_internal.timeout', 10))
-                ->withToken($token)
-                ->get($baseUrl . $path, $query);
+                ->withToken($token);
+
+            $response = $method === 'post'
+                ? $request->post($baseUrl . $path, $data)
+                : $request->get($baseUrl . $path, $data);
 
             $json = $response->json();
 
