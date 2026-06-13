@@ -119,7 +119,7 @@
                             <span class="w-2 h-2 bg-green-500 rounded-full inline-block"></span>&nbsp;Còn&nbsp;<strong>{{ $ton }}</strong>&nbsp;sản phẩm
                         </span>
                     @endif
-                    <span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                    <span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200" style="margin-left:48px">
                         Vị trí: <strong>{{ filled($pbDau['vi_tri'] ?? null) ? $pbDau['vi_tri'] : '-' }}</strong>
                     </span>
                 @endif
@@ -226,7 +226,7 @@
         const ton = parseInt(btn.dataset.ton);
         const ttEl = document.getElementById('trang-thai-ton-kho');
         const viTri = btn.dataset.viTri || '-';
-        const viTriHtml = '<span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">' +
+        const viTriHtml = '<span id="vi-tri-phien-ban" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200" style="margin-left:48px">' +
             'Vị trí: <strong>' + escapeHtmlInline(viTri || '-') + '</strong></span>';
 
         // Hiển thị số tồn kho chính xác
