@@ -516,7 +516,6 @@ class SanPhamService
                 'gia'        => (float) $sp->gia_ban_le,
                 'ton_kho'    => (int) $tonKho,
                 'anh'        => $sp->anh_dau_tien,
-                'vi_tri'     => $sp->vi_tri,
                 'thuoc_tinh' => $thuocTinh,
             ];
         })->values()->toArray();
