@@ -227,6 +227,30 @@ class DoiTacDonHangController extends Controller
         ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
     }
 
+    public function apiHoanTienPhieuTraHang(Request $request, int $id)
+    {
+        if (!$this->coQuyenHoanTienTraHangThuong()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tai khoan nay khong co quyen hoan tien phieu tra don hang thuong.',
+            ], 403);
+        }
+
+        $request->validate([
+            'so_tien' => 'nullable|numeric|min:1',
+        ]);
+
+        $ketQua = $this->donHangNoiBoService->hoanTienPhieuTra($id, (int) session('doi_tac_id'), [
+            'so_tien' => $request->input('so_tien'),
+        ]);
+
+        return response()->json([
+            'success' => $ketQua['success'],
+            'message' => $ketQua['message'],
+            'data' => $ketQua['data'] ?? null,
+        ], $ketQua['status'] ?? ($ketQua['success'] ? 200 : 500));
+    }
+
     private function coQuyenXemDonHangThuong(): bool
     {
         return session('doi_tac_id')
@@ -237,6 +261,12 @@ class DoiTacDonHangController extends Controller
     {
         return session('doi_tac_id')
             && in_array(session('doi_tac_quyen'), ['admin', 'thu_kho'], true);
+    }
+
+    private function coQuyenHoanTienTraHangThuong(): bool
+    {
+        return session('doi_tac_id')
+            && session('doi_tac_quyen') === 'admin';
     }
 
     private function coQuyenThaoTacDonHangThuong(string $hanhDong): bool

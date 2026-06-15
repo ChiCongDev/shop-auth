@@ -675,12 +675,11 @@
                             {{ $action['label'] }}
                         </button>
                     @endforeach
+                </div>
+                <div class="sell-action-group">
                     @if($normalOrderReturnUrl)
                         <a href="{{ $normalOrderReturnUrl }}" class="sell-btn sell-btn-orange">Đổi trả hàng</a>
                     @endif
-                </div>
-                <div class="sell-action-group">
-                    <span class="sell-action-note">Thao tác đơn thường</span>
                 </div>
             </div>
         @endif
@@ -692,7 +691,7 @@
                         <h1 class="sell-order-code">{{ $donHang['ma_don_hang'] ?? '-' }}</h1>
                         <span class="sell-badge {{ $statusTone }}">{{ $tenTrangThai }}</span>
                     </div>
-                    <p class="sell-muted" style="margin-top:8px;">Tao luc {{ $formatDateTime($donHang['created_at'] ?? null) }}</p>
+                    <p class="sell-muted" style="margin-top:8px;">Tạo lúc {{ $formatDateTime($donHang['created_at'] ?? null) }}</p>
                 </div>
             </div>
 
@@ -721,10 +720,10 @@
 
         <section class="sell-info-row">
             <div class="sell-card sell-card-pad">
-                <div class="sell-section-title">Thong tin khach hang</div>
+                <div class="sell-section-title">Thông tin khách hàng</div>
                 <div class="sell-field-list">
                     <div class="sell-field">
-                        <span class="sell-field-label">Ten KH:</span>
+                        <span class="sell-field-label">Tên KH:</span>
                         <span class="sell-field-value sell-linklike">{{ $khachHang['ten'] ?? '-' }}</span>
                     </div>
                     <div class="sell-field">
@@ -736,11 +735,11 @@
                         <span class="sell-field-value">{{ $khachHang['email'] ?? '-' }}</span>
                     </div>
                     <div class="sell-field">
-                        <span class="sell-field-label">Ma KH:</span>
+                        <span class="sell-field-label">Mã KH:</span>
                         <span class="sell-field-value">{{ $khachHang['ma_khach_hang'] ?? '-' }}</span>
                     </div>
                     <div class="sell-field">
-                        <span class="sell-field-label">Nhom KH:</span>
+                        <span class="sell-field-label">Nhóm KH:</span>
                         <span class="sell-field-value sell-linklike">{{ $khachHang['nhom_khach_hang'] ?? '-' }}</span>
                     </div>
                 </div>
@@ -748,34 +747,34 @@
 
             <div class="sell-card sell-card-pad">
                 <div class="sell-section-title">
-                    <span>Cach thuc nhan hang</span>
+                    <span>Cách thức nhận hàng</span>
                     <span class="sell-badge purple">{{ $receiveMap[$cachNhanHang] ?? $cachNhanHang }}</span>
                 </div>
                 <div class="sell-field-list">
                     <div class="sell-field">
-                        <span class="sell-field-label">Hinh thuc:</span>
+                        <span class="sell-field-label">Hình thức:</span>
                         <span class="sell-field-value">{{ $receiveMap[$cachNhanHang] ?? $cachNhanHang }}</span>
                     </div>
                     <div class="sell-field">
-                        <span class="sell-field-label">Dia chi:</span>
+                        <span class="sell-field-label">Địa chỉ:</span>
                         <span class="sell-field-value">{{ $diaChiGiaoHang ?: '-' }}</span>
                     </div>
                 </div>
             </div>
 
             <div class="sell-card sell-card-pad">
-                <div class="sell-section-title" style="text-transform:none;">Thong tin don hang</div>
+                <div class="sell-section-title" style="text-transform:none;">Thông tin đơn hàng</div>
                 <div class="sell-field-list">
                     <div class="sell-field">
-                        <span class="sell-field-label">Ngay dat</span>
+                        <span class="sell-field-label">Ngày đặt</span>
                         <span class="sell-field-value">: {{ $formatDate($donHang['ngay_dat'] ?? null) }}</span>
                     </div>
                     <div class="sell-field">
-                        <span class="sell-field-label">Ngay giao du kien</span>
+                        <span class="sell-field-label">Ngày giao dự kiến</span>
                         <span class="sell-field-value">: {{ $formatDate($donHang['ngay_giao_du_kien'] ?? null) }}</span>
                     </div>
                     <div class="sell-field">
-                        <span class="sell-field-label">Nhan vien</span>
+                        <span class="sell-field-label">Nhân viên</span>
                         <span class="sell-field-value">: {{ $nhanVien['ten'] ?? '-' }}</span>
                     </div>
                 </div>
@@ -785,10 +784,10 @@
         <section class="sell-card">
             <div class="sell-product-head">
                 <div>
-                    <h2 class="sell-product-title">Thong tin san pham</h2>
-                    <p class="sell-muted" style="margin-top:4px;">{{ $tongDongHang }} dong - {{ number_format($tongSoLuong) }} san pham</p>
+                    <h2 class="sell-product-title">Thông tin sản phẩm</h2>
+                    <p class="sell-muted" style="margin-top:4px;">{{ $tongDongHang }} dòng - {{ number_format($tongSoLuong) }} sản phẩm</p>
                 </div>
-                <span class="sell-btn sell-btn-primary" style="cursor:default;">Kiem tra don hang</span>
+                <span class="sell-btn sell-btn-primary" style="cursor:default;">Kiểm tra đơn hàng</span>
             </div>
 
             <div class="sell-table-wrap">
@@ -796,13 +795,13 @@
                     <thead>
                         <tr>
                             <th style="width:58px;">STT</th>
-                            <th style="width:72px;">Anh</th>
-                            <th>Ten san pham</th>
-                            <th class="center" style="width:110px;">So luong</th>
-                            <th class="center" style="width:120px;">SL order ve</th>
-                            <th class="right" style="width:130px;">Gia ban</th>
-                            <th class="right" style="width:110px;">Chiet khau</th>
-                            <th class="right" style="width:140px;">Thanh tien</th>
+                            <th style="width:72px;">Ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th class="center" style="width:110px;">Số lượng</th>
+                            <th class="center" style="width:120px;">SL order về</th>
+                            <th class="right" style="width:130px;">Giá bán</th>
+                            <th class="right" style="width:110px;">Chiết khấu</th>
+                            <th class="right" style="width:140px;">Thành tiền</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -840,7 +839,7 @@
                         @empty
                             <tr>
                                 <td colspan="8">
-                                    <div class="sell-empty">Khong co san pham.</div>
+                                    <div class="sell-empty">Không có sản phẩm.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -852,23 +851,23 @@
                 <div></div>
                 <div class="sell-summary-box">
                     <div class="sell-summary-line">
-                        <span>Tong tien ({{ number_format($tongSoLuong) }} san pham)</span>
+                        <span>Tổng tiền ({{ number_format($tongSoLuong) }} sản phẩm)</span>
                         <strong>{{ number_format((float) ($donHang['tong_tien'] ?? 0), 0, ',', '.') }}</strong>
                     </div>
                     <div class="sell-summary-line">
-                        <span>Chiet khau ({{ (float) ($donHang['chiet_khau'] ?? 0) }}%)</span>
+                        <span>Chiết khấu ({{ (float) ($donHang['chiet_khau'] ?? 0) }}%)</span>
                         <strong style="color:#ef4444;">{{ number_format((float) ($donHang['tien_giam'] ?? 0), 0, ',', '.') }}</strong>
                     </div>
                     <div class="sell-summary-line total">
-                        <span>Tien thanh toan</span>
+                        <span>Tiền thanh toán</span>
                         <strong>{{ number_format((float) ($donHang['tien_thanh_toan'] ?? 0), 0, ',', '.') }}</strong>
                     </div>
                     <div class="sell-summary-line">
-                        <span>Da thanh toan</span>
+                        <span>Đã thanh toán</span>
                         <strong style="color:#059669;">{{ number_format((float) ($donHang['da_thanh_toan'] ?? 0), 0, ',', '.') }}</strong>
                     </div>
                     <div class="sell-summary-line">
-                        <span>Con phai tra</span>
+                        <span>Còn phải trả</span>
                         <strong>{{ number_format($conPhaiTra, 0, ',', '.') }}</strong>
                     </div>
                 </div>

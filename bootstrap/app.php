@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->appendToGroup('web', \App\Http\Middleware\DongBoSessionDoiTac::class);
+
         $middleware->alias([
             'kiemTraDangNhap' => \App\Http\Middleware\KiemTraDangNhap::class,
             'kiemTraDoiTac' => \App\Http\Middleware\KiemTraDoiTacDangNhap::class,

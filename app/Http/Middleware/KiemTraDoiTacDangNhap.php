@@ -21,8 +21,11 @@ class KiemTraDoiTacDangNhap
         return redirect('/doi-tac/dang-nhap')->with('thongBao', 'Vui lòng đăng nhập khu đối tác để tiếp tục.');
         }
 
-        if (!DoiTacService::coQuyenDangNhapDoiTac(session('doi_tac_quyen'))) {
-            session()->forget(['doi_tac_id', 'doi_tac_ten', 'doi_tac_email', 'doi_tac_quyen']);
+        if (
+            !$request->attributes->get('doi_tac_nhan_vien_hop_le')
+            && !DoiTacService::layNhanVienDoiTacHopLeTheoSession()
+        ) {
+            DoiTacService::xoaSessionDoiTac();
 
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([

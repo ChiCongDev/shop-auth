@@ -8,9 +8,18 @@ class NhanVien extends Model
 {
     protected $table = 'nhan_viens';
 
-    protected $fillable = ['ten', 'email', 'mat_khau', 'quyen', 'vtp_account_id'];
+    protected $fillable = ['ten', 'email', 'mat_khau', 'quyen', 'da_khoa_dang_nhap', 'vtp_account_id'];
 
     protected $hidden = ['mat_khau'];
+
+    protected $casts = [
+        'da_khoa_dang_nhap' => 'boolean',
+    ];
+
+    public function taiKhoanBiKhoa(): bool
+    {
+        return (bool) ($this->da_khoa_dang_nhap ?? false);
+    }
 
     public function khachHangDuocGan()
     {

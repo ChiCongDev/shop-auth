@@ -88,6 +88,19 @@ class DoiTacDonHangNoiBoService
         ]);
     }
 
+    public function hoanTienPhieuTra(int $phieuTraHangId, int $nhanVienId, array $payload): array
+    {
+        return $this->guiPost('/api/noi-bo/phieu-tra-hang/' . $phieuTraHangId . '/hoan-tien', array_merge($payload, [
+            'nhan_vien_id' => $nhanVienId,
+            'loai_don' => 'thuong',
+            'nguon' => 'shop_auth_doi_tac',
+        ]), [
+            'phieu_tra_hang_id' => $phieuTraHangId,
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'hoan_tien_phieu_tra_don_thuong',
+        ]);
+    }
+
     private function guiGet(string $path, array $query = [], array $logContext = []): array
     {
         return $this->guiRequest('get', $path, $query, $logContext);

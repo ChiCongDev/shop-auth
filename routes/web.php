@@ -145,6 +145,8 @@ if (config('services.doi_tac_order.enabled', false)) {
         Route::get('/phieu-tra-hang/{id}', [DoiTacDonHangController::class, 'apiLayChiTietPhieuTraHang'])
             ->where('id', '[0-9]+');
         Route::post('/phieu-tra-hang/tao', [DoiTacDonHangController::class, 'apiTaoPhieuTraHang']);
+        Route::post('/phieu-tra-hang/{id}/hoan-tien', [DoiTacDonHangController::class, 'apiHoanTienPhieuTraHang'])
+            ->where('id', '[0-9]+');
         Route::get('/{id}', [DoiTacDonHangController::class, 'apiLayChiTiet'])
             ->where('id', '[0-9]+');
         Route::post('/{id}/{hanhDong}', [DoiTacDonHangController::class, 'apiThaoTac'])

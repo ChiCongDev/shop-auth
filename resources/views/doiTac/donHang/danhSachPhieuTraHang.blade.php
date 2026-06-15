@@ -3,7 +3,7 @@
 @section('hideFooter', true)
 
 @section('content')
-<div id="danh-sach-phieu-tra-don-thuong" class="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+<div id="danh-sach-phieu-tra-don-thuong" data-doi-tac-quyen="{{ session('doi_tac_quyen') }}" class="mx-auto max-w-7xl px-4 pb-8 pt-6 sm:px-6 sm:pt-8 lg:px-8">
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <p class="text-xs font-bold uppercase tracking-wide" style="color:#d4af37">Theo dõi bán hàng</p>
@@ -46,7 +46,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[980px] text-sm">
+            <table class="w-full min-w-[1080px] text-sm">
                 <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
                         <th class="px-4 py-3 text-left">Mã phiếu</th>
@@ -85,6 +85,47 @@
     </div>
 </div>
 
+<div id="return-refund-modal" class="fixed inset-0 z-[85] hidden bg-black/40 p-4">
+    <div class="mx-auto mt-12 max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div class="flex items-start justify-between border-b border-gray-200 px-5 py-4">
+            <div>
+                <h2 class="text-lg font-bold text-gray-950">Ho&#224;n ti&#7873;n cho kh&#225;ch</h2>
+                <p id="refund-modal-subtitle" class="mt-1 text-sm text-gray-500"></p>
+            </div>
+            <button type="button" id="btn-close-refund-modal" class="rounded-lg p-2 text-gray-500 hover:bg-gray-100">&#272;&#243;ng</button>
+        </div>
+        <div class="space-y-4 p-5">
+            <input type="hidden" id="refund-phieu-id">
+            <div class="grid gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">T&#7893;ng ti&#7873;n c&#7847;n ho&#224;n</span>
+                    <span id="refund-tong-tien" class="font-semibold text-gray-950">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">&#272;&#227; ho&#224;n</span>
+                    <span id="refund-da-hoan" class="font-semibold text-emerald-700">0</span>
+                </div>
+                <div class="flex justify-between border-t border-gray-200 pt-3">
+                    <span class="font-semibold text-gray-800">C&#242;n c&#7847;n ho&#224;n</span>
+                    <span id="refund-con-lai" class="font-bold text-red-600">0</span>
+                </div>
+            </div>
+            <label class="block text-sm font-semibold text-gray-700">
+                S&#7889; ti&#7873;n ho&#224;n
+                <input id="refund-so-tien" class="mt-1 w-full rounded-lg border border-gray-200 px-4 py-3 text-right text-sm font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            </label>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" data-refund-percent="25" class="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">25%</button>
+                <button type="button" data-refund-percent="50" class="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">50%</button>
+                <button type="button" data-refund-percent="100" class="rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">Ho&#224;n &#273;&#7911;</button>
+            </div>
+            <button id="btn-confirm-refund" type="button" class="w-full rounded-lg bg-yellow-600 px-4 py-3 text-sm font-bold text-white hover:bg-yellow-700 disabled:cursor-not-allowed disabled:opacity-60">
+                X&#225;c nh&#7853;n ho&#224;n ti&#7873;n
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="toast-notification" class="hidden fixed right-5 top-5 z-[90] min-w-80 rounded-xl border border-gray-100 bg-white p-4 shadow-xl">
     <p id="toast-title" class="font-semibold text-gray-900"></p>
     <p id="toast-message" class="mt-1 text-sm text-gray-600"></p>
@@ -99,6 +140,10 @@ const state = {
     tuNgay: '',
     denNgay: '',
 };
+
+const root = document.getElementById('danh-sach-phieu-tra-don-thuong');
+const coQuyenHoanTien = root?.dataset.doiTacQuyen === 'admin';
+let phieuDangHoanTien = null;
 
 const statusText = {
     da_nhan_hang: 'Đã nhận hàng',
@@ -126,6 +171,22 @@ function formatDate(value) {
 
 function formatNumber(value) {
     return new Intl.NumberFormat('vi-VN').format(Number(value || 0));
+}
+
+function parseMoney(value) {
+    return Number(String(value || '').replace(/[^\d]/g, '')) || 0;
+}
+
+function layAnhSanPham(value) {
+    if (!value) return '';
+    try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed) && parsed.length) {
+            return `/storage/uploads/sanpham/${parsed[0]}`;
+        }
+    } catch (error) {
+    }
+    return `/storage/uploads/sanpham/${value}`;
 }
 
 function showToast(title, message) {
@@ -196,6 +257,10 @@ function renderRows(items) {
 
     tbody.innerHTML = items.map((item) => {
         const khach = item.khach_hang || {};
+        const tienHoan = Number(item.tien_hoan || item.tong_tien_tra || 0);
+        const daHoan = Number(item.da_hoan || 0);
+        const conLai = Math.max(0, tienHoan - daHoan);
+        const coTheHoanTien = coQuyenHoanTien && conLai > 0 && !['huy', 'da_hoan_tien'].includes(item.trang_thai);
         return `<tr class="transition hover:bg-gray-50">
             <td class="px-4 py-4">
                 <div class="font-bold text-gray-950">${escapeHtml(item.ma_phieu)}</div>
@@ -209,11 +274,19 @@ function renderRows(items) {
                 <div class="font-semibold text-gray-900">${escapeHtml(khach.ten || 'Khách lẻ')}</div>
                 <div class="mt-1 text-xs text-gray-500">${escapeHtml(khach.sdt || '')}</div>
             </td>
+            <td class="px-4 py-4 text-center font-semibold text-gray-950">${formatNumber(item.tong_so_luong || 0)}</td>
             <td class="px-4 py-4 text-center">${badge(item.trang_thai)}</td>
-            <td class="px-4 py-4 text-right font-bold text-gray-950">${formatNumber(item.tong_tien_tra)}</td>
+            <td class="px-4 py-4 text-right">
+                <div class="font-bold text-gray-950">${formatNumber(item.tong_tien_tra)}</div>
+                ${daHoan > 0 ? `<div class="mt-1 text-xs font-semibold text-emerald-700">&#272;&#227; ho&#224;n: ${formatNumber(daHoan)}</div>` : ''}
+                ${tienHoan > daHoan ? `<div class="mt-1 text-xs text-gray-500">C&#242;n: ${formatNumber(tienHoan - daHoan)}</div>` : ''}
+            </td>
             <td class="px-4 py-4 text-gray-600">${formatDate(item.created_at)}</td>
             <td class="px-4 py-4 text-right">
-                <button type="button" onclick="xemChiTiet(${Number(item.id)})" class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Xem</button>
+                <div class="flex items-center justify-end gap-2">
+                    <button type="button" onclick="xemChiTiet(${Number(item.id)})" class="inline-flex h-10 items-center justify-center rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Xem</button>
+                    ${coTheHoanTien ? `<button type="button" onclick="moHoanTien(${Number(item.id)})" class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-yellow-600 px-3 text-sm font-semibold text-white hover:bg-yellow-700">Ho&#224;n ti&#7873;n</button>` : ''}
+                </div>
             </td>
         </tr>`;
     }).join('');
@@ -272,6 +345,9 @@ async function xemChiTiet(id) {
 }
 
 function renderModal(phieu) {
+    const tienHoan = Number(phieu.tien_hoan || phieu.tong_tien_tra || 0);
+    const daHoan = Number(phieu.da_hoan || 0);
+    const conLai = Math.max(0, tienHoan - daHoan);
     document.getElementById('modal-return-title').textContent = phieu.ma_phieu || 'Chi tiết phiếu trả';
     document.getElementById('modal-return-subtitle').textContent = phieu.ma_don_hang_goc || '';
     document.getElementById('modal-return-body').innerHTML = `
@@ -279,6 +355,7 @@ function renderModal(phieu) {
             <div class="rounded-lg border border-gray-200 p-4">
                 <p class="text-xs font-bold uppercase text-gray-500">Khách hàng</p>
                 <p class="mt-2 font-semibold text-gray-950">${escapeHtml(phieu.khach_hang?.ten || '-')}</p>
+                <p class="mt-1 text-xs text-gray-500">${escapeHtml(phieu.khach_hang?.sdt || '')}</p>
             </div>
             <div class="rounded-lg border border-gray-200 p-4">
                 <p class="text-xs font-bold uppercase text-gray-500">Trạng thái</p>
@@ -287,12 +364,15 @@ function renderModal(phieu) {
             <div class="rounded-lg border border-gray-200 p-4">
                 <p class="text-xs font-bold uppercase text-gray-500">Tiền trả</p>
                 <p class="mt-2 text-lg font-bold text-gray-950">${formatNumber(phieu.tong_tien_tra)}</p>
+                <p class="mt-1 text-xs font-semibold text-emerald-700">&#272;&#227; ho&#224;n: ${formatNumber(daHoan)}</p>
+                <p class="mt-1 text-xs font-semibold text-red-600">C&#242;n c&#7847;n ho&#224;n: ${formatNumber(conLai)}</p>
             </div>
         </div>
         <div class="mt-5 overflow-x-auto rounded-lg border border-gray-200">
-            <table class="w-full min-w-[720px] text-sm">
+            <table class="w-full min-w-[820px] text-sm">
                 <thead class="bg-gray-50 text-xs uppercase text-gray-500">
                     <tr>
+                        <th class="w-16 px-4 py-3 text-left">&#7842;nh</th>
                         <th class="px-4 py-3 text-left">Sản phẩm</th>
                         <th class="px-4 py-3 text-center">Số lượng</th>
                         <th class="px-4 py-3 text-right">Giá trả</th>
@@ -300,7 +380,14 @@ function renderModal(phieu) {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    ${(phieu.chi_tiets || []).map(item => `<tr>
+                    ${(phieu.chi_tiets || []).map(item => {
+                        const imageUrl = layAnhSanPham(item.anh_san_pham);
+                        return `<tr>
+                        <td class="px-4 py-3">
+                            <div class="h-12 w-12 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                                ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" class="h-full w-full object-cover" onerror="this.style.display='none'">` : ''}
+                            </div>
+                        </td>
                         <td class="px-4 py-3">
                             <div class="font-semibold text-gray-950">${escapeHtml(item.ten_san_pham || 'Sản phẩm')}</div>
                             <div class="mt-1 text-xs text-gray-500">${escapeHtml(item.ma_sku || '')}</div>
@@ -308,7 +395,8 @@ function renderModal(phieu) {
                         <td class="px-4 py-3 text-center font-semibold">${formatNumber(item.so_luong)}</td>
                         <td class="px-4 py-3 text-right">${formatNumber(item.gia_tra)}</td>
                         <td class="px-4 py-3 text-right font-bold">${formatNumber(item.thanh_tien)}</td>
-                    </tr>`).join('')}
+                    </tr>`;
+                    }).join('')}
                 </tbody>
             </table>
         </div>
@@ -318,6 +406,105 @@ function renderModal(phieu) {
         </div>
     `;
     document.getElementById('return-detail-modal').classList.remove('hidden');
+}
+
+async function moHoanTien(id) {
+    if (!coQuyenHoanTien) {
+        showToast('Khong co quyen', 'Tai khoan nay khong co quyen hoan tien phieu tra don hang thuong.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/doi-tac/don-hang/phieu-tra-hang/${id}`, {
+            headers: { Accept: 'application/json' },
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Khong tai duoc thong tin phieu tra hang.');
+        }
+
+        phieuDangHoanTien = data.data || {};
+        const tienHoan = Number(phieuDangHoanTien.tien_hoan || phieuDangHoanTien.tong_tien_tra || 0);
+        const daHoan = Number(phieuDangHoanTien.da_hoan || 0);
+        const conLai = Math.max(0, tienHoan - daHoan);
+
+        if (conLai <= 0 || ['huy', 'da_hoan_tien'].includes(phieuDangHoanTien.trang_thai)) {
+            showToast('Khong the hoan tien', 'Phieu nay da hoan du, da huy hoac khong con tien can hoan.');
+            return;
+        }
+
+        document.getElementById('refund-phieu-id').value = id;
+        document.getElementById('refund-modal-subtitle').textContent = phieuDangHoanTien.ma_phieu || '';
+        document.getElementById('refund-tong-tien').textContent = formatNumber(tienHoan);
+        document.getElementById('refund-da-hoan').textContent = formatNumber(daHoan);
+        document.getElementById('refund-con-lai').textContent = formatNumber(conLai);
+        document.getElementById('refund-so-tien').value = formatNumber(conLai);
+        document.getElementById('return-refund-modal').classList.remove('hidden');
+    } catch (error) {
+        showToast('Loi', error.message || 'Khong tai duoc thong tin phieu tra hang.');
+    }
+}
+
+async function xacNhanHoanTien() {
+    if (!phieuDangHoanTien) return;
+
+    const phieuId = document.getElementById('refund-phieu-id').value;
+    const soTien = parseMoney(document.getElementById('refund-so-tien').value);
+    const tienHoan = Number(phieuDangHoanTien.tien_hoan || phieuDangHoanTien.tong_tien_tra || 0);
+    const daHoan = Number(phieuDangHoanTien.da_hoan || 0);
+    const conLai = Math.max(0, tienHoan - daHoan);
+
+    if (soTien <= 0) {
+        showToast('Thieu so tien', 'Vui long nhap so tien hoan lon hon 0.');
+        return;
+    }
+
+    if (soTien > conLai) {
+        showToast('Vuot qua so tien', `So tien toi da co the hoan la ${formatNumber(conLai)}.`);
+        return;
+    }
+
+    if (!window.confirm(`Xac nhan hoan ${formatNumber(soTien)} cho khach?`)) {
+        return;
+    }
+
+    const button = document.getElementById('btn-confirm-refund');
+    button.disabled = true;
+    button.textContent = 'Dang hoan tien...';
+
+    try {
+        const response = await fetch(`/api/doi-tac/don-hang/phieu-tra-hang/${phieuId}/hoan-tien`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: JSON.stringify({ so_tien: soTien }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Khong hoan tien duoc cho phieu nay.');
+        }
+
+        document.getElementById('return-refund-modal').classList.add('hidden');
+        phieuDangHoanTien = null;
+        showToast('Thanh cong', data.message || 'Da hoan tien cho khach.');
+        taiDanhSach(state.page);
+    } catch (error) {
+        showToast('Loi', error.message || 'Khong hoan tien duoc cho phieu nay.');
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Xac nhan hoan tien';
+    }
+}
+
+function chonSoTienTheoPhanTram(phanTram) {
+    if (!phieuDangHoanTien) return;
+    const tienHoan = Number(phieuDangHoanTien.tien_hoan || phieuDangHoanTien.tong_tien_tra || 0);
+    const daHoan = Number(phieuDangHoanTien.da_hoan || 0);
+    const conLai = Math.max(0, tienHoan - daHoan);
+    document.getElementById('refund-so-tien').value = formatNumber(Math.round(conLai * phanTram / 100));
 }
 
 function bindFilters() {
@@ -342,9 +529,27 @@ function bindFilters() {
 document.getElementById('btn-close-return-modal')?.addEventListener('click', () => {
     document.getElementById('return-detail-modal').classList.add('hidden');
 });
+document.getElementById('btn-close-refund-modal')?.addEventListener('click', () => {
+    document.getElementById('return-refund-modal').classList.add('hidden');
+    phieuDangHoanTien = null;
+});
+document.getElementById('btn-confirm-refund')?.addEventListener('click', xacNhanHoanTien);
+document.getElementById('refund-so-tien')?.addEventListener('input', (event) => {
+    const value = parseMoney(event.target.value);
+    event.target.value = value ? formatNumber(value) : '';
+});
+document.querySelectorAll('[data-refund-percent]').forEach((button) => {
+    button.addEventListener('click', () => chonSoTienTheoPhanTram(Number(button.dataset.refundPercent || 100)));
+});
 
 window.taiDanhSach = taiDanhSach;
 window.xemChiTiet = xemChiTiet;
+window.moHoanTien = moHoanTien;
+
+document.querySelector('#tbody-return')?.closest('table')?.querySelector('thead tr th:nth-child(4)')?.insertAdjacentHTML(
+    'beforebegin',
+    '<th class="px-4 py-3 text-center">SL tr&#7843;</th>'
+);
 
 bindFilters();
 taiDanhSach();
