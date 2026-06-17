@@ -73,6 +73,7 @@ if (config('services.doi_tac_order.enabled', false)) {
 
     Route::prefix('doi-tac/don-hang')->middleware('kiemTraDoiTac')->group(function () {
         Route::get('/', [DoiTacDonHangController::class, 'hienThiDanhSach'])->name('doiTac.donHang.danhSach');
+        Route::get('/tao', [DoiTacDonHangController::class, 'hienThiTaoDonHang'])->name('doiTac.donHang.tao');
         Route::get('/khach-tra-hang', [DoiTacDonHangController::class, 'hienThiDanhSachPhieuTraHang'])
             ->name('doiTac.donHang.khachTraHang');
         Route::get('/{id}/doi-tra', [DoiTacDonHangController::class, 'hienThiDoiTraHang'])
@@ -139,6 +140,14 @@ if (config('services.doi_tac_order.enabled', false)) {
 
     Route::prefix('api/doi-tac/don-hang')->middleware('kiemTraDoiTac')->group(function () {
         Route::get('/danh-sach', [DoiTacDonHangController::class, 'apiLayDanhSach']);
+        Route::get('/khach-hang-mac-dinh', [DoiTacDonHangController::class, 'apiKhachHangMacDinh']);
+        Route::get('/tim-khach-hang', [DoiTacDonHangController::class, 'apiTimKiemKhachHang']);
+        Route::get('/khach-hang/{khachHangId}/nhan-vien-duoc-gan', [DoiTacDonHangController::class, 'apiLayNhanVienDuocGan'])
+            ->where('khachHangId', '[0-9]+');
+        Route::get('/tim-san-pham', [DoiTacDonHangController::class, 'apiTimKiemSanPham']);
+        Route::get('/lay-gia-nhap', [DoiTacDonHangController::class, 'apiLayGiaNhap']);
+        Route::post('/lay-gia-theo-chinh-sach', [DoiTacDonHangController::class, 'apiLayGiaTheoChinhSach']);
+        Route::post('/tao', [DoiTacDonHangController::class, 'apiTaoDonHang']);
         Route::get('/phieu-tra-hang/danh-sach', [DoiTacDonHangController::class, 'apiLayDanhSachPhieuTraHang']);
         Route::get('/phieu-tra-hang/so-luong-da-tra/{donHangId}', [DoiTacDonHangController::class, 'apiLaySoLuongDaTra'])
             ->where('donHangId', '[0-9]+');

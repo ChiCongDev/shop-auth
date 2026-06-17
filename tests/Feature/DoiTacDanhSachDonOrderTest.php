@@ -52,6 +52,34 @@ class DoiTacDanhSachDonOrderTest extends TestCase
         $this->assertStringContainsString('window.chonKhachHangGioOrder(khachHang.id)', $cartOrderScript);
     }
 
+    public function test_tao_don_thuong_an_chiet_khau_va_hen_giao_an_toan(): void
+    {
+        $view = file_get_contents(resource_path('views/doiTac/donHang/taoDonHang.blade.php'));
+        $script = file_get_contents(resource_path('js/doiTac/donHang/taoDonHang.js'));
+
+        $this->assertStringContainsString('id="chiet-khau-don-hang" type="hidden" value="0"', $view);
+        $this->assertStringContainsString('id="hen-giao-don-hang" type="hidden" value=""', $view);
+        $this->assertStringContainsString('label:has(+ #hen-giao-don-hang)', $view);
+        $this->assertStringNotContainsString('type="date"', $view);
+        $this->assertStringContainsString("document.getElementById('chiet-khau-don-hang')?.value || 0", $script);
+        $this->assertStringContainsString("document.getElementById('hen-giao-don-hang')?.value || null", $script);
+    }
+
+    public function test_nav_desktop_an_menu_don_hang_thuong_nhung_giu_route_va_dropdown(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $routes = file_get_contents(base_path('routes/web.php'));
+
+        $this->assertStringContainsString('data-desktop-normal-order-nav', $layout);
+        $this->assertStringContainsString('class="group relative hidden shrink-0"', $layout);
+        $this->assertStringContainsString("Route::prefix('doi-tac/don-hang')", $routes);
+        $this->assertStringContainsString("Route::get('/tao', [DoiTacDonHangController::class, 'hienThiTaoDonHang'])", $routes);
+        $this->assertStringContainsString("Route::get('/', [DoiTacDonHangController::class, 'hienThiDanhSach'])", $routes);
+        $this->assertStringContainsString('group/normal-order relative', $layout);
+        $this->assertStringContainsString('<span>Đơn hàng thường</span>', $layout);
+        $this->assertStringContainsString('href="/doi-tac/don-hang/tao" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"', $layout);
+    }
+
     public function test_san_pham_order_doi_tac_chi_hien_thi_va_tao_bang_gia_order(): void
     {
         $controller = file_get_contents(app_path('Http/Controllers/DoiTacOrderHangController.php'));
@@ -108,6 +136,28 @@ class DoiTacDanhSachDonOrderTest extends TestCase
         $this->assertLessThan($notePosition, $infoSectionPosition);
         $this->assertLessThan($productSectionPosition, $notePosition);
         $this->assertLessThan($historyPosition, $notePosition);
+    }
+
+    public function test_chi_tiet_don_thuong_hien_ghi_chu_don_hang_va_an_block_vtp(): void
+    {
+        $view = file_get_contents(resource_path('views/doiTac/donHang/chiTiet.blade.php'));
+
+        $this->assertStringContainsString('$ghiChuDonHang = trim(preg_replace', $view);
+        $this->assertStringContainsString("/\\s*\\[VTP:[^\\]]+\\]/", $view);
+        $this->assertStringContainsString("id=\"boxGhiChuDonHang\"", $view);
+        $this->assertStringContainsString("Ghi chú đơn hàng", $view);
+        $this->assertStringContainsString("nl2br(e(\$ghiChuDonHang))", $view);
+        $this->assertSame(1, substr_count($view, 'id="boxGhiChuDonHang"'));
+
+        $infoSectionPosition = strpos($view, '<section class="sell-info-row">');
+        $notePosition = strpos($view, 'id="boxGhiChuDonHang"');
+        $productSectionPosition = strpos($view, '<h2 class="sell-product-title">Thông tin sản phẩm</h2>');
+
+        $this->assertNotFalse($infoSectionPosition);
+        $this->assertNotFalse($notePosition);
+        $this->assertNotFalse($productSectionPosition);
+        $this->assertLessThan($notePosition, $infoSectionPosition);
+        $this->assertLessThan($productSectionPosition, $notePosition);
     }
 
     public function test_thao_tac_lay_hang_trong_kho_gui_san_phams_sang_sell(): void

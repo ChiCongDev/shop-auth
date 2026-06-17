@@ -40,6 +40,79 @@ class DoiTacDonHangNoiBoService
         ]);
     }
 
+    public function layKhachHangMacDinh(int $nhanVienId): array
+    {
+        return $this->guiGet('/api/noi-bo/don-hang/khach-hang-mac-dinh', [
+            'nhan_vien_id' => $nhanVienId,
+        ], [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_khach_hang_mac_dinh_tao_don_thuong',
+        ]);
+    }
+
+    public function timKiemKhachHang(int $nhanVienId, array $boLoc = []): array
+    {
+        return $this->guiGet('/api/noi-bo/don-hang/tim-khach-hang', array_merge($boLoc, [
+            'nhan_vien_id' => $nhanVienId,
+        ]), [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'tim_khach_hang_tao_don_thuong',
+        ]);
+    }
+
+    public function layNhanVienDuocGan(int $nhanVienId, int $khachHangId): array
+    {
+        return $this->guiGet('/api/noi-bo/don-hang/khach-hang/' . $khachHangId . '/nhan-vien-duoc-gan', [
+            'nhan_vien_id' => $nhanVienId,
+        ], [
+            'nhan_vien_id' => $nhanVienId,
+            'khach_hang_id' => $khachHangId,
+            'hanh_dong' => 'lay_nhan_vien_duoc_gan_tao_don_thuong',
+        ]);
+    }
+
+    public function timKiemSanPham(int $nhanVienId, array $boLoc = []): array
+    {
+        return $this->guiGet('/api/noi-bo/don-hang/tim-san-pham', array_merge($boLoc, [
+            'nhan_vien_id' => $nhanVienId,
+        ]), [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'tim_san_pham_tao_don_thuong',
+        ]);
+    }
+
+    public function layGiaNhap(int $nhanVienId, string $ids): array
+    {
+        return $this->guiGet('/api/noi-bo/don-hang/lay-gia-nhap', [
+            'ids' => $ids,
+            'nhan_vien_id' => $nhanVienId,
+        ], [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_gia_nhap_tao_don_thuong',
+        ]);
+    }
+
+    public function layGiaTheoChinhSach(int $nhanVienId, array $payload): array
+    {
+        return $this->guiPost('/api/noi-bo/don-hang/lay-gia-theo-chinh-sach', array_merge($payload, [
+            'nhan_vien_id' => $nhanVienId,
+        ]), [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'lay_gia_theo_chinh_sach_tao_don_thuong',
+        ]);
+    }
+
+    public function taoDonHang(int $nhanVienId, array $payload): array
+    {
+        return $this->guiPost('/api/noi-bo/don-hang/tao', array_merge($payload, [
+            'nhan_vien_id' => $nhanVienId,
+            'nguon' => 'shop_auth_doi_tac',
+        ]), [
+            'nhan_vien_id' => $nhanVienId,
+            'hanh_dong' => 'tao_don_hang_thuong',
+        ]);
+    }
+
     public function laySoLuongDaTra(int $donHangId, int $nhanVienId): array
     {
         return $this->guiGet('/api/noi-bo/phieu-tra-hang/so-luong-da-tra/' . $donHangId, [

@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/donHang/danhSach.js',
                 'resources/js/donHang/chiTiet.js',
                 'resources/js/taiKhoan/index.js',
+                'resources/js/doiTac/donHang/taoDonHang.js',
                 'resources/js/doiTac/orderHang/taoDonOrder.js',
                 'resources/js/doiTac/orderHang/danhSachDonOrder.js',
                 'resources/js/doiTac/orderHang/danhSachKhachHangOrder.js',

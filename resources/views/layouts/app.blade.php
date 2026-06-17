@@ -72,7 +72,7 @@
                     @endif
                     @if(config('services.doi_tac_order.enabled', false) && session('doi_tac_id'))
                     @if(session('doi_tac_quyen') !== 'quan_ly_order')
-                    <div class="group relative shrink-0">
+                    <div class="group relative hidden shrink-0" data-desktop-normal-order-nav>
                         <a href="/doi-tac/don-hang"
                            class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-colors {{ Request::is('doi-tac/don-hang*') ? 'underline underline-offset-4' : '' }}"
                            style="color:#d4af37">
@@ -82,6 +82,7 @@
                             </svg>
                         </a>
                         <div class="invisible absolute left-0 top-full z-50 mt-3 w-64 rounded-2xl border border-gray-100 bg-white p-2 opacity-0 shadow-xl transition-all group-hover:visible group-hover:opacity-100">
+                            <a href="/doi-tac/don-hang/tao" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Tạo đơn hàng</a>
                             <a href="/doi-tac/don-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Danh sách đơn hàng</a>
                             @if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho'], true))
                                 <a href="/doi-tac/don-hang/khach-tra-hang" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-gray-900">Khách trả hàng</a>
@@ -226,7 +227,21 @@
                         <div id="dropdown-doi-tac"
                              class="hidden absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg py-1 z-50 border border-gray-100">
                             @if(session('doi_tac_quyen') !== 'quan_ly_order')
-                                <a href="/doi-tac/don-hang" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Đơn hàng</a>
+                                <div class="group/normal-order relative">
+                                    <a href="/doi-tac/don-hang" class="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                                        <span>Đơn hàng thường</span>
+                                        <svg class="h-4 w-4 text-gray-400 transition-transform group-hover/normal-order:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                    <div class="invisible absolute right-full top-0 z-50 w-56 rounded-xl border border-gray-100 bg-white py-1 opacity-0 shadow-lg transition-all group-hover/normal-order:visible group-hover/normal-order:opacity-100">
+                                        <a href="/doi-tac/don-hang/tao" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Tạo đơn hàng</a>
+                                        <a href="/doi-tac/don-hang" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Danh sách đơn hàng</a>
+                                        @if(in_array(session('doi_tac_quyen'), ['admin', 'thu_kho'], true))
+                                            <a href="/doi-tac/don-hang/khach-tra-hang" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Khách trả hàng</a>
+                                        @endif
+                                    </div>
+                                </div>
                             @endif
                             <a href="/doi-tac/order-hang/danh-sach" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Đơn order của tôi</a>
                             <a href="/doi-tac/order-hang/tao" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Tạo đơn order</a>

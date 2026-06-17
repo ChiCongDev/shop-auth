@@ -52,6 +52,7 @@
     $tyLeThanhToan = min(100, max(0, (float) ($donHang['ty_le_thanh_toan'] ?? 0)));
     $diaChiGiaoHang = $donHang['dia_chi_giao_hang_day_du'] ?? '';
     $cachNhanHang = $donHang['cach_thuc_nhan_hang'] ?? 'van_chuyen';
+    $ghiChuDonHang = trim(preg_replace('/\s*\[VTP:[^\]]+\]/', '', (string) ($donHang['ghi_chu'] ?? '')));
 
     $timeline = [
         ['key' => 'cho_xu_ly', 'label' => 'Chờ xử lý'],
@@ -400,6 +401,39 @@
         color: #374151;
         font-weight: 600;
         overflow-wrap: anywhere;
+    }
+    .sell-note-card {
+        border: 1px solid #fcd34d;
+        background: #fffbeb;
+        padding: 18px 20px;
+    }
+    .sell-note-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        color: #78350f;
+        font-size: 14px;
+        font-weight: 800;
+    }
+    .sell-note-icon {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #fef3c7;
+        color: #b45309;
+        font-size: 12px;
+        font-weight: 900;
+    }
+    .sell-note-content {
+        margin: 0;
+        white-space: pre-wrap;
+        color: #78350f;
+        font-size: 14px;
+        line-height: 1.65;
     }
     .sell-linklike {
         color: #2563eb;
@@ -780,6 +814,16 @@
                 </div>
             </div>
         </section>
+
+        @if($ghiChuDonHang !== '')
+            <section id="boxGhiChuDonHang" class="sell-card sell-note-card">
+                <div class="sell-note-head">
+                    <span class="sell-note-icon">i</span>
+                    <span>Ghi chú đơn hàng</span>
+                </div>
+                <p class="sell-note-content">{!! nl2br(e($ghiChuDonHang)) !!}</p>
+            </section>
+        @endif
 
         <section class="sell-card">
             <div class="sell-product-head">
