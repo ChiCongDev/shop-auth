@@ -6,6 +6,7 @@ use App\Models\GioHang;
 use App\Models\GioHangChiTiet;
 use App\Models\SanPham;
 use App\Models\KhoHangSanPham;
+use App\Support\SanPhamAnHelper;
 
 /**
  * Service xử lý giỏ hàng
@@ -39,6 +40,10 @@ class GioHangService
         $sanPham = SanPham::find($sanPhamId);
         if (!$sanPham) {
             throw new \Exception('Sản phẩm không tồn tại.');
+        }
+
+        if (SanPhamAnHelper::nhomDaAn($sanPham->ma_chung)) {
+            throw new \Exception('Sản phẩm đã ngừng bán.');
         }
 
         // Kiểm tra tồn kho (dùng đúng tên cột thật: so_luong_ton)

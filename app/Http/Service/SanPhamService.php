@@ -3,6 +3,7 @@
 namespace App\Http\Service;
 
 use App\Models\SanPham;
+use App\Support\SanPhamAnHelper;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -30,6 +31,7 @@ class SanPhamService
         // LEFT JOIN: ẩn SP đã khai kho nhưng hết hàng, giữ SP chưa khai kho
         $ids = DB::table('san_phams as sp')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->selectRaw('MIN(sp.id) as min_id')
             ->groupBy('sp.ma_chung')
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0')
@@ -60,6 +62,7 @@ class SanPhamService
             ->join('phieu_nhaps as pn', 'pnct.phieu_nhap_id', '=', 'pn.id')
             ->join('san_phams as sp', 'pnct.san_pham_id', '=', 'sp.id')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->where('pn.trang_thai', 'da_nhap')
             ->selectRaw('sp.ma_chung, MIN(sp.id) as min_id, MAX(pn.created_at) as ngay_nhap_moi_nhat')
             ->groupBy('sp.ma_chung')
@@ -74,6 +77,7 @@ class SanPhamService
         if ($ids->isEmpty()) {
             $ids = DB::table('san_phams as sp')
                 ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->selectRaw('MIN(sp.id) as min_id, MAX(sp.created_at) as ngay_tao')
                 ->groupBy('sp.ma_chung')
                 ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0')
@@ -113,6 +117,7 @@ class SanPhamService
             ->join('phieu_nhaps as pn', 'pnct.phieu_nhap_id', '=', 'pn.id')
             ->join('san_phams as sp', 'pnct.san_pham_id', '=', 'sp.id')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->where('pn.trang_thai', 'da_nhap')
             ->selectRaw('sp.ma_chung, MIN(sp.id) as min_id, MAX(pn.created_at) as ngay_nhap')
             ->groupBy('sp.ma_chung')
@@ -128,6 +133,7 @@ class SanPhamService
         if ($rows->isEmpty()) {
             $fallbackSub = DB::table('san_phams as sp')
                 ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->selectRaw('sp.ma_chung, MIN(sp.id) as min_id, MAX(sp.created_at) as ngay_nhap')
                 ->groupBy('sp.ma_chung')
                 ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0');
@@ -185,6 +191,7 @@ class SanPhamService
         // LEFT JOIN: ẩn SP đã khai kho nhưng hết hàng, giữ SP chưa khai kho
         $subQuery = DB::table('san_phams as sp_inner')
             ->leftJoin('kho_hang_san_phams as kh', 'sp_inner.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp_inner.ma_chung'))
             ->selectRaw('MIN(sp_inner.id) as min_id')
             ->groupBy('sp_inner.ma_chung')
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0');
@@ -232,6 +239,9 @@ class SanPhamService
      */
     public function layChiTietSanPham(string $maChung): ?array
     {
+        // Sản phẩm Sell đã ẩn → coi như không còn bán (trang trả 404)
+        if (SanPhamAnHelper::nhomDaAn($maChung)) return null;
+
         $phienBans = SanPham::with(['khoHangSanPhams', 'thuocTinhs'])
             ->where('ma_chung', $maChung)
             ->orderBy('id')
@@ -260,6 +270,7 @@ class SanPhamService
     {
         $subQuery = DB::table('san_phams as sp')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->selectRaw('MIN(sp.id) as min_id')
             ->where('sp.ma_chung', '!=', $maChung)
             ->groupBy('sp.ma_chung')
@@ -274,6 +285,7 @@ class SanPhamService
         if ($ids->count() < $soLuong) {
             $ids = DB::table('san_phams as sp')
                 ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->selectRaw('MIN(sp.id) as min_id')
                 ->where('sp.ma_chung', '!=', $maChung)
                 ->groupBy('sp.ma_chung')
@@ -316,6 +328,7 @@ class SanPhamService
                 ->join('phieu_nhaps as pn', 'pnct.phieu_nhap_id', '=', 'pn.id')
                 ->join('san_phams as sp', 'pnct.san_pham_id', '=', 'sp.id')
                 ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->where('pn.trang_thai', 'da_nhap')
                 ->whereNotNull('sp.nhan_hieu')
                 ->where('sp.nhan_hieu', '!=', '')
@@ -330,6 +343,7 @@ class SanPhamService
         // JOIN kho để chỉ liệt kê nhãn hiệu có ít nhất 1 sản phẩm còn hàng
         $query = DB::table('san_phams as sp')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->select('sp.nhan_hieu')
             ->whereNotNull('sp.nhan_hieu')
             ->where('sp.nhan_hieu', '!=', '')
@@ -378,6 +392,7 @@ class SanPhamService
 
         $ids = DB::table('san_phams as sp')
             ->leftJoin('kho_hang_san_phams as kh', 'sp.id', '=', 'kh.san_pham_id')
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->selectRaw('MIN(sp.id) as min_id')
             ->groupBy('sp.ma_chung')
             ->havingRaw('COALESCE(SUM(kh.so_luong_ton), 0) > 0')

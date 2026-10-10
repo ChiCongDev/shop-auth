@@ -89,6 +89,15 @@ session('sdtDangNhap')       // Số điện thoại
 | `don_hangs` | Đơn hàng | ✅ Tạo khi đặt hàng |
 | `chi_tiet_don_hangs` | Chi tiết đơn | ✅ Tạo khi đặt hàng |
 | `dia_chis` | Địa chỉ khách | ✅ Tạo/sửa |
+| `nhom_san_pham_ans` | Nhóm sản phẩm (ma_chung) bị Sell ẨN — không hiện, không cho thêm giỏ / đặt / order | ❌ Không (chỉ Sell ghi) |
+
+**Sản phẩm bị ẩn (từ 2026-10-10):** đọc qua `App\Support\SanPhamAnHelper` — cùng quy tắc với bản bên Sell,
+đổi một bên thì đổi cả hai. Mọi truy vấn MỚI liệt kê sản phẩm để bán (web bán lẻ, catalog order đối tác)
+phải gọi `SanPhamAnHelper::boNhomDaAn()`. Bảng do migration của Sell tạo — phải chạy migration bên Sell
+TRƯỚC khi deploy code này, nếu không mọi trang sản phẩm lỗi. Test: `tests/Feature/SanPhamAnShopAuthTest.php`.
+
+⚠️ `phpunit.xml` KHÔNG đổi database cho test (dòng SQLite đang bị comment) → `.env` trỏ vào MySQL thật.
+Chạy test với `DB_CONNECTION=sqlite DB_DATABASE=:memory:` trong biến môi trường, đừng chạy trần.
 
 ## Bảng Riêng Của Web Bán Lẻ
 

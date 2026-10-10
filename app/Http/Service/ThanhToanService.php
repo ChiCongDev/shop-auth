@@ -6,6 +6,7 @@ use App\Models\DonHang;
 use App\Models\ChiTietDonHang;
 use App\Models\GioHang;
 use App\Models\DiaChi;
+use App\Support\SanPhamAnHelper;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -26,6 +27,12 @@ class ThanhToanService
 
         if (!$gioHang || $gioHang->chiTiets->isEmpty()) {
             throw new \Exception('Giỏ hàng trống.');
+        }
+
+        // Sản phẩm bỏ vào giỏ trước khi bị ẩn: không cho đặt, báo rõ để khách xóa khỏi giỏ
+        $tenDaAn = SanPhamAnHelper::tenSanPhamDaAn($gioHang->chiTiets->pluck('san_pham_id'));
+        if (!empty($tenDaAn)) {
+            throw new \Exception('Sản phẩm đã ngừng bán: ' . implode(', ', $tenDaAn) . '. Vui lòng xóa khỏi giỏ hàng rồi đặt lại.');
         }
 
         DB::beginTransaction();

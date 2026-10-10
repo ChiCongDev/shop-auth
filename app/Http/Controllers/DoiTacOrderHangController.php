@@ -11,6 +11,7 @@ use App\Models\KhachHang;
 use App\Models\NhomKhachHang;
 use App\Models\NhanVien;
 use App\Models\SanPham;
+use App\Support\SanPhamAnHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -198,6 +199,9 @@ class DoiTacOrderHangController extends Controller
                 ->with(['sanPhamGias:id,san_pham_id,chinh_sach_gia_id,gia'])
                 ->where('duoc_phep_order', true);
 
+            // Sản phẩm Sell đã ẩn không order được nữa
+            SanPhamAnHelper::boNhomDaAn($query, 'san_phams.ma_chung');
+
             if ($tuKhoa !== '') {
                 $query->where(function ($q) use ($tuKhoa) {
                     $q->where('ten', 'like', '%' . $tuKhoa . '%')
@@ -252,6 +256,7 @@ class DoiTacOrderHangController extends Controller
         )
             ->with(['sanPhamGias:id,san_pham_id,chinh_sach_gia_id,gia'])
             ->where('duoc_phep_order', true)
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'san_phams.ma_chung'))
             ->find($id);
 
         if (!$sanPham) {
@@ -275,6 +280,7 @@ class DoiTacOrderHangController extends Controller
                 ->where('sp.duoc_phep_order', true)
                 ->whereNotNull('sp.ma_chung')
                 ->where('sp.ma_chung', '!=', '')
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->groupBy('sp.ma_chung')
                 ->orderByDesc(DB::raw('MAX(sp.order_listed_at)'))
                 ->orderByDesc(DB::raw('MIN(sp.id)'));
@@ -313,6 +319,13 @@ class DoiTacOrderHangController extends Controller
     public function apiChiTietSanPhamDuocPhep(string $maChung)
     {
         try {
+            if (SanPhamAnHelper::nhomDaAn($maChung)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm không còn được phép order hoặc không tồn tại.',
+                ], 404);
+            }
+
             $phienBans = SanPham::select(
                 'id',
                 'ten',
@@ -1151,6 +1164,7 @@ class DoiTacOrderHangController extends Controller
             ->selectRaw('sp.ma_chung, MIN(sp.id) as san_pham_dai_dien_id, COUNT(*) as so_phien_ban, MIN(NULLIF(sp.gia_order, 0)) as gia_order_thap_nhat, MIN(NULLIF(sp.gia_ban_le, 0)) as gia_ban_le_thap_nhat, MAX(sp.order_listed_at) as order_listed_at_moi_nhat')
             ->where('sp.duoc_phep_order', true)
             ->where('sp.ma_chung', '!=', $maChung)
+            ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
             ->when($nhanHieu, fn($q) => $q->where('sp.nhan_hieu', $nhanHieu))
             ->whereNotNull('sp.ma_chung')
             ->where('sp.ma_chung', '!=', '')
@@ -1165,6 +1179,7 @@ class DoiTacOrderHangController extends Controller
                 ->selectRaw('sp.ma_chung, MIN(sp.id) as san_pham_dai_dien_id, COUNT(*) as so_phien_ban, MIN(NULLIF(sp.gia_order, 0)) as gia_order_thap_nhat, MIN(NULLIF(sp.gia_ban_le, 0)) as gia_ban_le_thap_nhat, MAX(sp.order_listed_at) as order_listed_at_moi_nhat')
                 ->where('sp.duoc_phep_order', true)
                 ->whereNotIn('sp.ma_chung', $maChungDaCo)
+                ->tap(fn ($q) => SanPhamAnHelper::boNhomDaAn($q, 'sp.ma_chung'))
                 ->whereNotNull('sp.ma_chung')
                 ->where('sp.ma_chung', '!=', '')
                 ->groupBy('sp.ma_chung')

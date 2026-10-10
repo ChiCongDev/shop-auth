@@ -5,6 +5,7 @@ namespace App\Http\Service;
 use App\Models\DoiTacGioOrderChiTiet;
 use App\Models\DoiTacGioOrderHang;
 use App\Models\SanPham;
+use App\Support\SanPhamAnHelper;
 
 class DoiTacGioOrderHangService
 {
@@ -22,6 +23,9 @@ class DoiTacGioOrderHangService
     public function themSanPham(int $doiTacId, int $sanPhamId, int $soLuong = 1): DoiTacGioOrderHang
     {
         $sanPham = SanPham::where('duoc_phep_order', true)->findOrFail($sanPhamId);
+        if (SanPhamAnHelper::nhomDaAn($sanPham->ma_chung)) {
+            throw new \RuntimeException('San pham da ngung ban, khong the order.');
+        }
         $giaOrder = $this->layGiaOrderTamTinh($sanPham);
         if ($giaOrder <= 0) {
             throw new \RuntimeException('San pham order chua co gia order hop le.');
@@ -73,8 +77,12 @@ class DoiTacGioOrderHangService
 
     public function dinhDangGioOrder(DoiTacGioOrderHang $gioOrder): array
     {
+        // Sản phẩm bị Sell ẩn sau khi đã bỏ vào giỏ: không hiện, không được tính tiền (giống tắt order)
+        $sanPhamIdsDaAn = collect(SanPhamAnHelper::idSanPhamDaAn($gioOrder->chiTiets->pluck('san_pham_id')))->flip();
+
         $items = $gioOrder->chiTiets
             ->filter(fn($item) => $item->sanPham && $item->sanPham->duoc_phep_order)
+            ->reject(fn($item) => $sanPhamIdsDaAn->has((int) $item->san_pham_id))
             ->map(function ($item) {
                 $sanPham = $item->sanPham;
                 $gia = $this->layGiaOrderTamTinh($sanPham);
